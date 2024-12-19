@@ -3,11 +3,11 @@
     <!-- General Settings -->
     <category label="General Settings">
         <setting id="username" type="text" label="Username" enable="true"/>
-        <setting id="password" type="text" label="Password"  enable="false"/>
-        <setting id="vip_remaining" type="text" label="VIP_days_remaining"  enable="false"/>
+        <setting id="password" type="text" label="Password" option="hidden" enable="false"/>
+        <setting id="vip_remaining" type="text" label="VIP_days_remaining" enable="false"/>
         <setting type="sep"/>
-        <setting id="salt" type="text" label="Salt" enable="false"/>
-        <setting id="token" type="text" label="Token" enable="false"/>
+        <setting id="salt" type="text" label="Salt" option="hidden" enable="false"/>
+        <setting id="token" type="text" label="Token" option="hidden" enable="false"/>
     </category>
 
     <!-- Interface Settings -->
