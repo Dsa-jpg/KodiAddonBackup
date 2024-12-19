@@ -1,113 +1,128 @@
+import datetime
 import xml.etree.ElementTree as ET
-import xbmcaddon # type: ignore
+from .config import URL_API, ERROR_LVL
 import requests
-import xbmc # type: ignore
 import hashlib
 from passlib.hash import md5_crypt
-
-
-ADDON = xbmcaddon.Addon()
-USERNAME = ADDON.getSetting('username')
-PASSWORD = ADDON.getSetting('password')
-s = requests.Session()
+from .logging import logged_message
 
 
 class WebShareClient():
 
 
-    def __init__(self):
-        self.username = USERNAME
-        self.password = PASSWORD
-        pass
-
-    @staticmethod
-    def data_(**kwargs):
-
-        data = {}
-        for k, v in kwargs.items():
-            data[k] = v
-        return data
+    def __init__(self, username:str, password:str):
+        self.username = username
+        self.password = password
+        self.session = requests.Session()
     
-    def _post(self, path, data=None):
-
-        if data is None:
-            data = {}
-        response = s.post(URL_API.BASE_URL2.format(path),data=data)
-        return response.text
+    def _post(self, path: str, data: dict = None) -> str:
+        """Internal method to make a POST request to the WebShare API."""
+        try:
+            response = self.session.post(URL_API.BASE_URL.format(path), data=data or {})
+            response.raise_for_status()
+            return response.text
+        except requests.RequestException as e:
+            logged_message(f"Request to {path} failed: {e}", ERROR_LVL.LOGWARNING)
+            raise RuntimeError(f"API request to {path} failed") from e
     
     def get_salt(self,
-                 username):
-        
-        response = self._post('/salt/',data=self.data_(username_or_email=username))
-        tree = ET.fromstring(response)
-        salt= tree.find('salt').text
-        return salt
+                 username: str) -> str:
+        """Fetches the salt value for a given username."""
+        response = self._post('/salt/',data={"username_or_email":username})
+        try:
+            tree = ET.fromstring(response)
+            salt = tree.find('salt').text
+            return salt
+        except (ET.ParseError, AttributeError):
+            logged_message("Failed to parse salt from response", ERROR_LVL.LOGWARNING)
+            raise ValueError("Invalid API response for salt")
     
     def md5_crypt_hash(self,
-                       password,
-                       salt):
-        
+                       password: str,
+                       salt: str) -> str:
+        """Generates an md5-crypt hash with a given salt and SHA1 digest."""
         md5_crypt_hash = md5_crypt.hash(password,salt=salt)
         sha1_digest = hashlib.sha1(md5_crypt_hash.encode()).hexdigest()
         return sha1_digest
         
-    def login(self,
-              username,
-              password):
-        
-        login_response = self._post('/login/',data=self.data_(username_or_email=username,password=self.md5_crypt_hash(password,self.get_salt(username)),keep_logged_in=1))
-        tree_login = ET.fromstring(login_response.text)
-        token = tree_login.find('token').text
-        return token
+    def login(self) -> str:
+        """Logs in the user and returns the token."""
+        salt = self.get_salt(self.username)
+        hashed_password = self.md5_crypt_hash(self.password, salt)
+        response = self._post("/login/", {"username_or_email": self.username,"password": hashed_password,"keep_logged_in": 1})
+        try:
+            tree = ET.fromstring(response)
+            return tree.find('token').text
+        except (ET.ParseError, AttributeError):
+            logged_message("Failed to parse token from login response", ERROR_LVL.LOGWARNING)
+            raise ValueError("Invalid API response for login")
     
     def userdata(self,
                  token):
 
-        userdata = self._post('/user_data/', data=self.data_(wst=token))
-        tree_userdata = ET.fromstring(userdata.text)
-        vip = tree_userdata.find('vip').text
-        vip_days = tree_userdata.find('vip_days').text
-        vip_until = tree_userdata.find('vip_until').text
-        return vip, vip_days, vip_until
+        """Fetches user data including VIP status and days remaining."""
+        response = self._post("/user_data/", {"wst": token})
+        try:
+            tree = ET.fromstring(response)
+            return {
+                "vip": tree.find('vip').text,
+                "vip_days": tree.find('vip_days').text,
+                "vip_until": tree.find('vip_until').text,
+            }
+        except (ET.ParseError, AttributeError):
+            logged_message("Failed to parse user data from response", ERROR_LVL.LOGWARNING)
+            raise ValueError("Invalid API response for user data")
     
-    def search(self,
-               search_data,
-               token,
-               user_uuid):
-        
-        search = self._post('/search/', data=self.data_(what=search_data, sort="rating", limit=1, category="video") )
-        tree_search = ET.fromstring(search.text)
-        for i in tree_search.findall('file'):
-            ident = i.find('ident').text
-            name = i.find('name').text
-            size = i.find('size').text
-            up_vote = i.find('positive_votes').text
+    def search(self, query: str, token: str, user_uuid: str) -> dict:
+        """Searches for files and retrieves detailed information."""
+        response = self._post("/search/", {
+            "what": query,
+            "sort": "rating",
+            "limit": 3,
+            "category": "video",
+        })
+        try:
+            tree = ET.fromstring(response)
+            files = []
+            f_test = tree.findall('file')
+            logged_message(f"Number of files found: {len(f_test)}",ERROR_LVL.LOGINFO)
+            for file in tree.findall('file'):
+                file_info = {
+                    "ident": file.find('ident').text,
+                    "name": file.find('name').text,
+                    "size": f"{int(file.find('size').text) / (1024**3):.2f} GB",
+                    "up_votes": file.find('positive_votes').text,
+                }
+                # Get file download link
+                file_link_response = self._post("/file_link/", {
+                    "ident": file_info["ident"],
+                    "password": "",
+                    "download_type": "video_stream",
+                    "device_uuid": user_uuid,
+                    "force_https": 0,
+                    "wst": token,
+                })
+                tree_file_link = ET.fromstring(file_link_response)
+                file_info["download_link"] = tree_file_link.find('link').text
 
-            file_link = self._post('/file_link/',data={"ident":ident,"password": "","download_type": "video_stream","device_uuid":user_uuid,"force_https": 0,"wst": token})
-
-            tree_filelink = ET.fromstring(file_link.text)
-
-            download_link = tree_filelink.find('link').text
-
-            file_info = self._post('/file_info/',data={"wst":token,"ident":ident})
-
-            tree_fileinfo = ET.fromstring(file_info.text)
-
-            width = tree_fileinfo.find('width').text
-            height = tree_fileinfo.find('height').text 
-            length = tree_fileinfo.find('length').text
-            format = tree_fileinfo.find('format').text
-            file_type = tree_fileinfo.find('type').text
-
-            return name, download_link
-
-            
-
-    
-
-class URL_API:
-    BASE_URL = 'https://webshare.cz/api{0}'
-    
+                # Get additional file info
+                file_info_response = self._post("/file_info/", {
+                    "wst": token,
+                    "ident": file_info["ident"],
+                })
+                tree_file_info = ET.fromstring(file_info_response)
+                file_info.update({
+                    "width": tree_file_info.find('width').text,
+                    "height": tree_file_info.find('height').text,
+                    "length": tree_file_info.find('length').text,
+                    "format": tree_file_info.find('format').text,
+                    "type": tree_file_info.find('type').text,
+                })
+                files.append(file_info)
+            return files
+        except (ET.ParseError, AttributeError):
+            logged_message("Failed to parse search results from response", ERROR_LVL.LOGWARNING)
+            raise ValueError("Invalid API response for search")
 
 
     
