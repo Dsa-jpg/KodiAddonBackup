@@ -6,6 +6,7 @@ import xbmcaddon # type: ignore
 from resources.lib.auth import WebShareClient
 from resources.lib.dialog_utils import dialog_handler, dialog_notify
 import uuid
+import xbmc
 
 # Inicializace addon handle a addon objektu
 addon_handle = int(sys.argv[1])
@@ -13,11 +14,15 @@ my_addon = xbmcaddon.Addon()
 webC = WebShareClient()
 dialog2 = xbmcgui.Dialog()
 
-if my_addon.getSetting('username') is None or my_addon.getSetting('password') is None:
+if not my_addon.getSetting('username') or not my_addon.getSetting('password'):
     username = dialog_handler('username', 'Enter Username', 'Username')
     password = dialog_handler('password', 'Enter Password', 'Password')
+    if username and password:  # Zkontrolujte, zda uživatel zadal obě hodnoty
+        my_addon.setSetting('username', username)
+        my_addon.setSetting('password', password)
 else:
-    pass  
+    xbmc.log("Settings are already configured", level=xbmc.LOGINFO)
+
 
 salt = webC.get_salt(my_addon.getSetting('username'))
 dialog_notify("Salt", salt)
