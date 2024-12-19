@@ -28,12 +28,18 @@ class WebShareClient():
             data[k] = v
         return data
     
+    def _post(self, path, data=None):
+
+        if data is None:
+            data = {}
+        response = s.post(URL_API.BASE_URL2.format(path),data=data)
+        return response.text
+    
     def get_salt(self,
                  username):
         
-        salt_response = s.post(URL_API.SALT_URL, data=self.data_(username_or_email=username))
-        
-        tree = ET.fromstring(salt_response.text)
+        response = self._post('/salt/',data=self.data_(username_or_email=username))
+        tree = ET.fromstring(response)
         salt= tree.find('salt').text
         return salt
     
@@ -49,7 +55,7 @@ class WebShareClient():
               username,
               password):
         
-        login_response = s.post(URL_API.LOGIN_URL,data=self.data_(username_or_email=username,password=self.md5_crypt_hash(password,self.get_salt(username)),keep_logged_in=1))
+        login_response = self._post('/login/',data=self.data_(username_or_email=username,password=self.md5_crypt_hash(password,self.get_salt(username)),keep_logged_in=1))
         tree_login = ET.fromstring(login_response.text)
         token = tree_login.find('token').text
         return token
@@ -57,7 +63,7 @@ class WebShareClient():
     def userdata(self,
                  token):
 
-        userdata = s.post(URL_API.USERDATA_URL, data=self.data_(wst=token))
+        userdata = self._post('/user_data/', data=self.data_(wst=token))
         tree_userdata = ET.fromstring(userdata.text)
         vip = tree_userdata.find('vip').text
         vip_days = tree_userdata.find('vip_days').text
@@ -69,7 +75,7 @@ class WebShareClient():
                token,
                user_uuid):
         
-        search = s.post(URL_API.SEARCH_URL, data=self.data_(what=search_data, sort="rating", limit=1, category="video") )
+        search = self._post('/search/', data=self.data_(what=search_data, sort="rating", limit=1, category="video") )
         tree_search = ET.fromstring(search.text)
         for i in tree_search.findall('file'):
             ident = i.find('ident').text
@@ -77,13 +83,13 @@ class WebShareClient():
             size = i.find('size').text
             up_vote = i.find('positive_votes').text
 
-            file_link = s.post(URL_API.FILELINK_URL,data={"ident":ident,"password": "","download_type": "video_stream","device_uuid":user_uuid,"force_https": 0,"wst": token})
+            file_link = self._post('/file_link/',data={"ident":ident,"password": "","download_type": "video_stream","device_uuid":user_uuid,"force_https": 0,"wst": token})
 
             tree_filelink = ET.fromstring(file_link.text)
 
             download_link = tree_filelink.find('link').text
 
-            file_info = s.post(URL_API.FILEINFO_URL,data={"wst":token,"ident":ident})
+            file_info = self._post('/file_info/',data={"wst":token,"ident":ident})
 
             tree_fileinfo = ET.fromstring(file_info.text)
 
@@ -93,21 +99,15 @@ class WebShareClient():
             format = tree_fileinfo.find('format').text
             file_type = tree_fileinfo.find('type').text
 
-            return download_link, name, size, up_vote, width, height, length, format, file_type
+            return name, download_link
 
             
 
     
 
 class URL_API:
-    BASE_URL = 'https://webshare.cz/api'
-    SALT_URL = BASE_URL + '/salt/'
-    LOGIN_URL = BASE_URL + '/login/'
-    USERDATA_URL = BASE_URL + '/user_data/'
-    ACCEPTTERMS_URL = BASE_URL + '/accept_terms/'
-    SEARCH_URL = BASE_URL + '/search/'
-    FILELINK_URL = BASE_URL + '/file_link/'
-    FILEINFO_URL = BASE_URL + '/file_info/'
+    BASE_URL = 'https://webshare.cz/api{0}'
+    
 
 
     
