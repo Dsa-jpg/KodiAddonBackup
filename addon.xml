@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<addon id="plugin.video.helloworld"
+       version="1.0.4"
+       name="WSBackUp"
+       provider-name="Minda">
+    <!-- Minimální požadovaná verze Kodi a Python -->
+    <requires>
+        <import addon="xbmc.python" version="3.0.0" />
+        <import addon="script.module.requests" version="2.22.0"/>
+         <import addon="script.module.passlib" version="1.7.4"/>
+    </requires>
+    <!-- Definice hlavního pluginového bodu -->
+    <extension point="xbmc.python.pluginsource" library="default.py">
+        <provides>video</provides>
+    </extension>
+    
+    <!-- Metadata pro Kodi -->
+    <extension point="xbmc.addon.metadata">
+        <summary lang="en_GB">Example Kodi Video Plugin</summary>
+            <description lang="en_GB">An example video plugin for Kodi mediacenter.</description>
+            <disclaimer lang="en_GB">Public domain movies are provided by publicdomainmovie.net.</disclaimer>
+            <license>GPL-3.0-only</license>
+            <assets>
+                <icon>icon.png</icon>
+            </assets>
+    <news>Updated with latest artwork metadata</news>
+    </extension>
+
+
+    
+</addon>
