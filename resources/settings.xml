@@ -12,6 +12,9 @@
 
     <!-- Interface Settings -->
     <category label="Interface Settings">
+        <setting id="authtoken" type="text" label="Authtoken" enable="false" />
+        <setting id="refreshtoken" type="text" label="Refreshtoken" enable="false"/>
+        <setting id="expiretime" type="text" label="Expiretime" enable="false" default="1734813267"/>
     </category>
 
     <!-- Advanced Settings -->

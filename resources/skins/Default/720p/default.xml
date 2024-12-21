@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<skin>
+    <name>default</name>
+    <version>1.0</version>
+    <resolutions>
+        <resolution name="default">720p</resolution>
+    </resolutions>
+</skin>

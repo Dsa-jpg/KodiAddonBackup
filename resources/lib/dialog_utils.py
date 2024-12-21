@@ -1,5 +1,7 @@
+import os
 import xbmcgui # type: ignore
-import xbmcaddon # type: ignore
+import xbmcaddon, xbmc # type: ignore
+import webbrowser
 
 my_addon = xbmcaddon.Addon()
 
@@ -23,3 +25,9 @@ def dialog_notify(notification_title,
     
     dialog = xbmcgui.Dialog()
     dialog.notification(f'The {notification_title} was successfully retrieved.', f'Your {notification_title} is {code}', xbmcgui.NOTIFICATION_INFO, 5000)
+
+def dialog_ok(notification_title,
+                  code):
+    
+    dialog = xbmcgui.Dialog()
+    dialog.ok(f'The {notification_title} was successfully retrieved.', f'Your {notification_title} is {code}')
