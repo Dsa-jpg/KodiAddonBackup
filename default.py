@@ -9,6 +9,7 @@ from resources.lib.auth import WebShareClient
 from resources.lib.dialog_utils import dialog_handler, dialog_notify
 from resources.lib.actions import handle_search
 from resources.lib.trakt import TraktClient
+from resources.lib.config import TRAKTLOGIN
 
 # Inicializace
 addon_handle = int(sys.argv[1])
@@ -24,7 +25,7 @@ if not my_addon.getSetting('username') or not my_addon.getSetting('password'):
         my_addon.setSetting('password', password)
 
 webC = WebShareClient(my_addon.getSetting('username'), my_addon.getSetting('password'))
-traK = TraktClient('049837151418f9fcc9d37d858e3543cb174e9560ce98ac101be744cc72631a37','73231b6d2dd2ff4855d42def1fdfa89d665a4b592746f73cf8ebce1308650797')
+traK = TraktClient(TRAKTLOGIN.CLIENTID,TRAKTLOGIN.CLIENTSECRET)
 
 salt = webC.get_salt(my_addon.getSetting('username'))
 my_addon.setSetting('salt', salt)
@@ -57,7 +58,7 @@ elif action == 'most_watched':
 
     for movie in most_watched_movies:
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"], "urls": ",".join(movie["urls"])})}'
-        list_item = xbmcgui.ListItem(movie['title'])
+        list_item = xbmcgui.ListItem(movie['title']({movie["year"]}))
         list_item.setInfo('video', {'title': movie['title']})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=False)
 
@@ -79,6 +80,22 @@ elif action == 'select_stream':
     else:
         xbmcgui.Dialog().ok('Error', 'No URLs available for this movie.')
 
+
+elif action == 'topfilms':
+    # Získání seznamu populárních filmů (limit 50)
+    test = traK.get_popular_movies(TRAKTLOGIN.CLIENTID, 50)
+
+    for movie in test:
+        # Generování URL pouze s akcí a názvem filmu
+        play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"]})}'
+        list_item = xbmcgui.ListItem(f'{movie["title"]} ({movie["year"]})')
+        list_item.setInfo('video', {'title': movie['title'], 'year': movie['year']})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=False)
+
+    # Ukončení adresáře
+    xbmcplugin.endOfDirectory(addon_handle)
+
+
 else:
     # Výchozí obsah
     xbmcplugin.setContent(addon_handle, 'movies')
@@ -94,5 +111,11 @@ else:
     most_watched_li = xbmcgui.ListItem('Most Watched')
     most_watched_li.setInfo('video', {'title': 'Most watched movies'})
     xbmcplugin.addDirectoryItem(handle=addon_handle, url=most_watched_url, listitem=most_watched_li, isFolder=True)
+
+    #  Pridani polozky "Top 50 films"
+    topfilms_url = f'plugin://plugin.video.helloworld/?action=topfilms'
+    topfilms_li = xbmcgui.ListItem('Top Films')
+    topfilms_li.setInfo('video', {'title': 'Top 50 films all time'})
+    xbmcplugin.addDirectoryItem(handle=addon_handle, url=topfilms_url, listitem=topfilms_li, isFolder=True)
 
     xbmcplugin.endOfDirectory(addon_handle)

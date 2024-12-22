@@ -23,3 +23,9 @@ class TIME:
 
     CURRENTTIME = datetime.datetime.now()
     CURRENTTIMETOUNIX = int(datetime.datetime.timestamp(CURRENTTIME))
+
+
+class TRAKTLOGIN:
+
+    CLIENTID = '049837151418f9fcc9d37d858e3543cb174e9560ce98ac101be744cc72631a37'
+    CLIENTSECRET = '73231b6d2dd2ff4855d42def1fdfa89d665a4b592746f73cf8ebce1308650797'

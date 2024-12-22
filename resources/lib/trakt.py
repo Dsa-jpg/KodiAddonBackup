@@ -1,6 +1,6 @@
 from datetime import datetime
 import webbrowser
-from .config import URL_API, ERROR_LVL, TIME
+from .config import URL_API, ERROR_LVL
 import requests
 import json
 from .logging import logged_message
@@ -26,6 +26,17 @@ class TraktClient():
             logged_message(f"Request to {path} failed: {e}", ERROR_LVL.LOGWARNING)
             raise RuntimeError(f"API request to {path} failed") from e
         
+
+    def _get(self, path: str, headers:dict = None) -> str:
+        try:
+            response = self.session.get(URL_API.TRAKT_BASE_URL.format(path), headers=headers or {})
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            logged_message(f"Request to {path} failed: {e}", ERROR_LVL.LOGWARNING)
+            raise RuntimeError(f"API request to {path} failed") from e
+
+        
     def get_auth_token(self):
         
             
@@ -47,4 +58,39 @@ class TraktClient():
 
         
         return response["refresh_token"],str(ex)
+    
+    def refresh_auth_token(self, refreshtoken: str):
+
+        response = self._post('/oauth/token',json={
+                    "code": refreshtoken,
+                    "client_id": self.client_id,
+                    "client_secret": self.client_secret,
+                    "redirect_uri": URL_API.REDIRECT_URL,
+                    "grant_type": "refresh_token"
+            })
         
+        expires_in_sec = response["expires_in"]
+        created_at = response["created_at"]
+        ex = int(expires_in_sec) + int(created_at)
+
+        return response["refresh_token"],str(ex)
+    
+    def get_popular_movies(self, apikey: str, limit: int):
+
+        response = self._get(f'/movies/popular?limit={limit}', headers={
+                    "Content-Type": "application/json",
+                    "trakt-api-version": "2",
+                    "trakt-api-key": apikey,
+        })
+
+        return response
+    
+    def get_show_seasons(self, show_id: str, apikey: str):
+
+        response = self._get(f'/shows/{show_id}/seasons', headers={
+            "Content-Type": "application/json",
+            "trakt-api-version": "2",
+            "trakt-api-key": apikey,
+        })
+        
+        return response
