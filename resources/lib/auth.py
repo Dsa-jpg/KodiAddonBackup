@@ -15,7 +15,9 @@ class WebShareClient():
         self.password = password
         self.session = requests.Session()
     
-    def _post(self, path: str, data: dict = None) -> str:
+    def _post(self,
+              path: str,
+              data: dict = None) -> str:
         """Internal method to make a POST request to the WebShare API."""
         try:
             response = self.session.post(URL_API.BASE_URL.format(path), data=data or {})
@@ -37,7 +39,7 @@ class WebShareClient():
             logged_message("Failed to parse salt from response", ERROR_LVL.LOGWARNING)
             raise ValueError("Invalid API response for salt")
     
-    def md5_crypt_hash(self,
+    def _md5_crypt_hash(self,
                        password: str,
                        salt: str) -> str:
         """Generates an md5-crypt hash with a given salt and SHA1 digest."""
@@ -48,7 +50,7 @@ class WebShareClient():
     def login(self) -> str:
         """Logs in the user and returns the token."""
         salt = self.get_salt(self.username)
-        hashed_password = self.md5_crypt_hash(self.password, salt)
+        hashed_password = self._md5_crypt_hash(self.password, salt)
         response = self._post("/login/", {"username_or_email": self.username,"password": hashed_password,"keep_logged_in": 1})
         try:
             tree = ET.fromstring(response)
@@ -58,7 +60,7 @@ class WebShareClient():
             raise ValueError("Invalid API response for login")
     
     def userdata(self,
-                 token):
+                 token: str):
 
         """Fetches user data including VIP status and days remaining."""
         response = self._post("/user_data/", {"wst": token})
@@ -73,25 +75,27 @@ class WebShareClient():
             logged_message("Failed to parse user data from response", ERROR_LVL.LOGWARNING)
             raise ValueError("Invalid API response for user data")
     
-    def search(self, query: str, token: str, user_uuid: str) -> dict:
+    def search(self,
+               query: str,
+               token: str,
+               user_uuid: str,
+               limit: int) -> dict:
         """Searches for files and retrieves detailed information."""
         response = self._post("/search/", {
             "what": query,
             "sort": "rating",
-            "limit": 3,
+            "limit": limit,
             "category": "video",
         })
         try:
             tree = ET.fromstring(response)
             files = []
             f_test = tree.findall('file')
-            logged_message(f"Number of files found: {len(f_test)}",ERROR_LVL.LOGINFO)
+            logged_message(f"Number of files found: {len(f_test)}",ERROR_LVL.LOGDEBUG)
             for file in tree.findall('file'):
                 file_info = {
                     "ident": file.find('ident').text,
-                    "name": file.find('name').text,
-                    "size": f"{int(file.find('size').text) / (1024**3):.2f} GB",
-                    "up_votes": file.find('positive_votes').text,
+                    "size": f"{int(file.find('size').text) / (1024**3):.2f} GB"
                 }
                 # Get file download link
                 file_link_response = self._post("/file_link/", {
@@ -104,25 +108,51 @@ class WebShareClient():
                 })
                 tree_file_link = ET.fromstring(file_link_response)
                 file_info["download_link"] = tree_file_link.find('link').text
-
-                # Get additional file info
-                file_info_response = self._post("/file_info/", {
-                    "wst": token,
-                    "ident": file_info["ident"],
-                })
-                tree_file_info = ET.fromstring(file_info_response)
-                file_info.update({
-                    "width": tree_file_info.find('width').text,
-                    "height": tree_file_info.find('height').text,
-                    "length": tree_file_info.find('length').text,
-                    "format": tree_file_info.find('format').text,
-                    "type": tree_file_info.find('type').text,
-                })
                 files.append(file_info)
             return files
         except (ET.ParseError, AttributeError):
             logged_message("Failed to parse search results from response", ERROR_LVL.LOGWARNING)
             raise ValueError("Invalid API response for search")
+        
+
+    def urls_list(self,
+               query: str,
+               token: str,
+               user_uuid: str,
+               limit: int) -> dict:
+
+        response = self._post("/search/", {
+            "what": query,
+            "sort": "rating",
+            "limit": limit,
+            "category": "video",
+        })
+
+        urls = {"urls":[]}
+        root = ET.fromstring(response)
+        for film in root:
+            if film.find('ident') is None:
+                continue
+            ident = film.find('ident').text
+
+            # Get file download link
+            _file_link_response = self._post("/file_link/", {
+                    "ident": ident,
+                    "password": "",
+                    "download_type": "video_stream",
+                    "device_uuid": user_uuid,
+                    "force_https": 0,
+                    "wst": token,
+                })
+            _reponse = ET.fromstring(_file_link_response)
+            # some of the films are password restricted so you need to filter these out by this condition 
+            if _reponse.find('link') is None:
+                continue
+            urls["urls"].append(_reponse.find('link').text)
+
+        
+        return urls
+        
 
 
     

@@ -1,13 +1,116 @@
 import uuid
+import urllib
 import xbmcgui # type: ignore
 from resources.lib.dialog_utils import dialog_notify
+import xbmcplugin, xbmc
 
 def handle_search(webC, addon):
-    """Zpracování vyhledávání."""
+    """Handling the search"""
     keyboard = xbmcgui.Dialog().input('Enter movie or series name', type=xbmcgui.INPUT_ALPHANUM)
     if keyboard:
         try:
-            searchdata = webC.search(keyboard, addon.getSetting('token'),user_uuid=str(uuid.uuid4()))
+            searchdata = webC.search(keyboard, addon.getSetting('token'),user_uuid=str(uuid.uuid4()),limit=10)
             dialog_notify("Search", str(searchdata))
         except Exception as e:
             xbmcgui.Dialog().notification("Search Error", str(e), xbmcgui.NOTIFICATION_ERROR)
+
+def handle_most_watched(webC, addon_handle, my_addon):
+    """Handling the most watched films"""
+    xbmcplugin.setContent(addon_handle, 'movies')
+    # Seznam "most watched" filmů, každý film má více streamů
+    most_watched_movies = [
+        {'title': 'Avatar'},
+        {'title': 'Titanic'},
+        {'title': 'The Dark Knight'}
+    ]
+
+    for movie in most_watched_movies:
+        test = webC.urls_list(movie['title'],my_addon.getSetting('token'),str(uuid.uuid4()),2)
+        play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"], "urls": ",".join(test["urls"])})}'
+        list_item = xbmcgui.ListItem(movie['title'])
+        list_item.setInfo('video', {'title': movie['title']})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=False)
+
+    xbmcplugin.endOfDirectory(addon_handle)
+
+def select_streams(params):
+
+    movie_title = params.get('title', 'Unknown Movie')
+    movie_urls = params.get('urls', '').split(',')
+    
+    if movie_urls:
+        # Zobrazí dialog pro výběr streamu
+        selected_index = xbmcgui.Dialog().select(f'Select Stream for {movie_title}', movie_urls)
+        if selected_index != -1:
+            selected_url = movie_urls[selected_index]
+            xbmcgui.Dialog().notification('Playing', movie_title, xbmcgui.NOTIFICATION_INFO)
+            xbmc.Player().play(selected_url)
+        else:
+            xbmcgui.Dialog().ok('Error', 'No stream selected.')
+    else:
+        xbmcgui.Dialog().ok('Error', 'No URLs available for this movie.')
+
+def top_films(traK, login, webC, my_addon, addon_handle):
+
+    # Získání seznamu populárních filmů (limit 50)
+    test = traK.get_popular_movies(login, 50)
+
+    for movie in test:
+        # Generování URL pouze s akcí a názvem filmu
+        test = webC.urls_list(movie['title'],my_addon.getSetting('token'),str(uuid.uuid4()),2)
+        play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"],"urls": ",".join(test["urls"])})}'
+        list_item = xbmcgui.ListItem(f'{movie["title"]} ({movie["year"]})')
+        list_item.setInfo('video', {'title': movie['title'], 'year': movie['year']})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=False)
+
+    # Ukončení adresáře
+    xbmcplugin.endOfDirectory(addon_handle)
+
+def trending_shows(traK, login, webC, my_addon, addon_handle):
+    # Získání seznamu populárních seriálů
+    trending_shows = traK.get_trending_shows(login, 50)
+
+    for show in trending_shows:
+        # Generování URL pro zobrazení sezón
+        play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "list_seasons", "show_id": show["ids"]["trakt"]})}'
+        list_item = xbmcgui.ListItem(f'{show["title"]} ({show["year"]})')
+        list_item.setInfo('video', {'title': show["title"], 'year': show["year"]})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=True)
+
+    # Ukončení adresáře
+    xbmcplugin.endOfDirectory(addon_handle)
+
+
+def show_seasons(traK, login, show_id, addon_handle):
+    # Získání seznamu sezón pro konkrétní seriál
+    seasons = traK.get_show_seasons(show_id,login)
+
+    for season in seasons:
+        season_number = season["number"]
+        play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "list_episodes", "show_id": show_id, "season": season_number})}'
+        list_item = xbmcgui.ListItem(f'Season {season_number}')
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=True)
+
+    xbmcplugin.endOfDirectory(addon_handle)
+
+
+def show_episodes(traK, login, show_id, season_number, addon_handle):
+    # Získání seznamu epizod pro danou sezónu
+    episodes = traK.get_episodes(login, show_id, season_number)
+
+    for episode in episodes:
+        # Použití metody get() pro bezpečné získání hodnoty 'overview'
+        overview = episode.get("overview", "No overview available.")
+        dummy_url = f'https://example.com/play/{show_id}/{season_number}/{episode["number"]}'
+        play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "play_episode", "url": dummy_url})}'
+        list_item = xbmcgui.ListItem(f'{episode["number"]}. {episode["title"]}')
+        list_item.setInfo('video', {'title': episode["title"], 'plot': overview})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=False)
+
+    xbmcplugin.endOfDirectory(addon_handle)
+
+
+def play_episode(url):
+    xbmcgui.Dialog().notification('Playing Episode', 'Starting playback...', xbmcgui.NOTIFICATION_INFO)
+    xbmc.Player().play(url)
+

@@ -94,3 +94,27 @@ class TraktClient():
         })
         
         return response
+    
+    def get_trending_shows(self, apikey: str, limit: int):
+
+        response = self._get(f'/shows/trending?limit={limit}', headers={
+            "Content-Type": "application/json",
+            "trakt-api-version": "2",
+            "trakt-api-key": apikey,
+        })
+
+        if response and isinstance(response, list):
+            return [item['show'] for item in response]
+        return []
+    
+    def get_episodes(self, apikey: str, show_id: str, season: int):
+        response = self._get(f'/shows/{show_id}/seasons/{season}', headers={
+            "Content-Type": "application/json",
+            "trakt-api-version": "2",
+            "trakt-api-key": apikey,
+        })
+        return response
+
+
+    def get_show_id():
+        ...
