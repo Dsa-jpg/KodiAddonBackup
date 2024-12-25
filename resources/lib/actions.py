@@ -84,6 +84,7 @@ def trending_shows(traK, login, webC, my_addon, addon_handle):
 def show_seasons(traK, login, show_id, addon_handle):
     # Získání seznamu sezón pro konkrétní seriál
     seasons = traK.get_show_seasons(show_id,login)
+    xbmcplugin.setContent(addon_handle, 'seasons')
 
     for season in seasons:
         season_number = season["number"]
@@ -94,15 +95,21 @@ def show_seasons(traK, login, show_id, addon_handle):
     xbmcplugin.endOfDirectory(addon_handle)
 
 
-def show_episodes(traK, login, show_id, season_number, addon_handle):
+def show_episodes(traK, login, show_id, season_number, addon_handle, my_addon, webC):
     # Získání seznamu epizod pro danou sezónu
     episodes = traK.get_episodes(login, show_id, season_number)
+    title = traK.get_show_by_id(login, show_id)
+    xbmcplugin.setContent(addon_handle, 'episodes')
 
     for episode in episodes:
         # Použití metody get() pro bezpečné získání hodnoty 'overview'
+
+        query = f'{title["title"]} - Season {season_number} - Episode {episode["number"]}'
+        xbmcgui.Dialog().notification(query, xbmcgui.NOTIFICATION_INFO)
+        test = webC.urls_list(query,my_addon.getSetting('token'),str(uuid.uuid4()),4)
         overview = episode.get("overview", "No overview available.")
-        dummy_url = f'https://example.com/play/{show_id}/{season_number}/{episode["number"]}'
-        play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "play_episode", "url": dummy_url})}'
+        #dummy_url = f'https://example.com/play/{show_id}/{season_number}/{episode["number"]}'
+        play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "play_episode", "url": ".".join(test["urls"])})}'
         list_item = xbmcgui.ListItem(f'{episode["number"]}. {episode["title"]}')
         list_item.setInfo('video', {'title': episode["title"], 'plot': overview})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=False)

@@ -13,7 +13,7 @@ def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle):
         'topfilms': lambda: top_films(traK, TRAKTLOGIN.CLIENTID, webC, my_addon, addon_handle),
         'trendingshows': lambda: trending_shows(traK, TRAKTLOGIN.CLIENTID, webC, my_addon, addon_handle),
         'list_seasons': lambda: show_seasons(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), addon_handle),
-        'list_episodes': lambda: show_episodes(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), int(params.get('season')), addon_handle),
+        'list_episodes': lambda: show_episodes(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), int(params.get('season')), addon_handle, my_addon, webC),
         'play_episode': lambda: play_episode(params.get('url')),
     }
 
