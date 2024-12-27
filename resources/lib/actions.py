@@ -91,7 +91,7 @@ def top_films(traK, login, webC, my_addon, addon_handle, tmdb):
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"],"urls": ",".join(test["urls"])})}'
         list_item = xbmcgui.ListItem(f'{movie["title"]} ({movie["year"]})')
         list_item.setInfo('video', {'title': movie['title'], 'year': movie['year'] , 'plot': overview})
-        list_item.setArt({'thumb': poster_url, 'icon': poster_url})
+        list_item.setArt({'thumb': poster_url, 'icon': poster_url, 'fanart': poster_url,})
 
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=False)
 
@@ -109,7 +109,7 @@ def trending_shows(traK, login, webC, my_addon, addon_handle, tmdb):
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "list_seasons", "show_id": show["ids"]["trakt"]})}'
         list_item = xbmcgui.ListItem(f'{show["title"]} ({show["year"]})')
         list_item.setInfo('video', {'title': show["title"], 'year': show["year"], 'plot': overview})
-        list_item.setArt({'thumb': poster_url, 'icon': poster_url})
+        list_item.setArt({'thumb': poster_url, 'icon': poster_url, 'fanart': poster_url})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=True)
 
     # Ukončení adresáře

@@ -28,7 +28,7 @@ def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb)
         search_url = f'plugin://plugin.video.helloworld/?action=search'
         search_li = xbmcgui.ListItem('Search')
         search_li.setInfo('video', {'title': 'Search for movies or series'})
-        search_li.setArt({'thumb': 'special://home/addons/plugin.video.helloworld/resources/icons/search.png'})
+        search_li.setArt({'icon': 'special://home/addons/plugin.video.helloworld/resources/icons/search.png'})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=search_url, listitem=search_li, isFolder=True)
 
         # Přidání položky "Most Watched"
