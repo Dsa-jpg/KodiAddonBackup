@@ -1,14 +1,9 @@
 import time
 import sys
 import urllib.parse
-import uuid
-import xbmcgui # type: ignore
-import xbmcplugin # type: ignore
-import xbmcaddon # type: ignore
-import xbmc # type: ignore
+import xbmcaddon 
 from resources.lib.auth import WebShareClient
 from resources.lib.dialog_utils import dialog_handler, dialog_notify
-from resources.lib.actions import handle_search, handle_most_watched, play_episode, select_streams, show_episodes, show_seasons, top_films, trending_shows
 from resources.lib.trakt import TraktClient
 from resources.lib.config import TMDB, TRAKTLOGIN
 from resources.lib.tmdb import TMDBclient

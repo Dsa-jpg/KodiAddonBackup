@@ -156,3 +156,9 @@ def play_episode(url):
     xbmcgui.Dialog().notification('Playing Episode', 'Starting playback...', xbmcgui.NOTIFICATION_INFO)
     xbmc.Player().play(url)
 
+def settings(my_addon, addon_handle):
+    # Zobrazení nastavení
+    my_addon.openSettings()
+    xbmcplugin.endOfDirectory(addon_handle)
+
+

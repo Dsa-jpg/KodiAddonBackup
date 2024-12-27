@@ -1,5 +1,4 @@
-import uuid
-from .actions import handle_search, handle_most_watched, select_streams, top_films, trending_shows, show_seasons, show_episodes, play_episode
+from .actions import handle_search, handle_most_watched, select_streams, settings, top_films, trending_shows, show_seasons, show_episodes, play_episode
 import xbmcplugin
 import xbmcgui
 
@@ -15,6 +14,7 @@ def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb)
         'list_seasons': lambda: show_seasons(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), addon_handle, tmdb),
         'list_episodes': lambda: show_episodes(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), int(params.get('season')), addon_handle, my_addon, webC, tmdb),
         'play_episode': lambda: play_episode(params.get('url')),
+        'settings': lambda: settings(my_addon,addon_handle)
     }
 
     # Pokud akce existuje v našem slovníku, zavoláme ji
@@ -48,5 +48,11 @@ def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb)
         trendingshows_li = xbmcgui.ListItem('Trending shows')
         trendingshows_li.setInfo('video', {'title': 'Top 50 Trending shows'})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=trendingshows_url, listitem=trendingshows_li, isFolder=True)
+
+        # Open addon Settings
+        settings_url = 'plugin://plugin.video.helloworld/?action=settings'
+        settings_li = xbmcgui.ListItem('Settings')
+        settings_li.setInfo('video', {'title': 'Settings'})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=settings_url, listitem=settings_li, isFolder=False)
 
         xbmcplugin.endOfDirectory(addon_handle)
