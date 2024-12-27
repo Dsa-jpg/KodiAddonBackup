@@ -4,16 +4,16 @@ import xbmcplugin
 import xbmcgui
 
 
-def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle):
+def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb):
     # Definice směrování jako slovník, kde klíče jsou akce a hodnoty jsou funkce
     actions = {
-        'search': lambda: handle_search(webC, my_addon),
+        'search': lambda: handle_search(webC, my_addon,tmdb,addon_handle),
         'most_watched': lambda: handle_most_watched(webC, addon_handle, my_addon),
         'select_stream': lambda: select_streams(params),
-        'topfilms': lambda: top_films(traK, TRAKTLOGIN.CLIENTID, webC, my_addon, addon_handle),
-        'trendingshows': lambda: trending_shows(traK, TRAKTLOGIN.CLIENTID, webC, my_addon, addon_handle),
-        'list_seasons': lambda: show_seasons(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), addon_handle),
-        'list_episodes': lambda: show_episodes(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), int(params.get('season')), addon_handle, my_addon, webC),
+        'topfilms': lambda: top_films(traK, TRAKTLOGIN.CLIENTID, webC, my_addon, addon_handle, tmdb),
+        'trendingshows': lambda: trending_shows(traK, TRAKTLOGIN.CLIENTID, webC, my_addon, addon_handle, tmdb),
+        'list_seasons': lambda: show_seasons(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), addon_handle, tmdb),
+        'list_episodes': lambda: show_episodes(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), int(params.get('season')), addon_handle, my_addon, webC, tmdb),
         'play_episode': lambda: play_episode(params.get('url')),
     }
 
@@ -28,7 +28,8 @@ def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle):
         search_url = f'plugin://plugin.video.helloworld/?action=search'
         search_li = xbmcgui.ListItem('Search')
         search_li.setInfo('video', {'title': 'Search for movies or series'})
-        xbmcplugin.addDirectoryItem(handle=addon_handle, url=search_url, listitem=search_li, isFolder=False)
+        search_li.setArt({'thumb': 'special://home/addons/plugin.video.helloworld/resources/icons/search.png'})
+        xbmcplugin.addDirectoryItem(handle=addon_handle, url=search_url, listitem=search_li, isFolder=True)
 
         # Přidání položky "Most Watched"
         most_watched_url = f'plugin://plugin.video.helloworld/?action=most_watched'

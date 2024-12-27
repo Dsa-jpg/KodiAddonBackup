@@ -29,3 +29,10 @@ class TRAKTLOGIN:
 
     CLIENTID = '049837151418f9fcc9d37d858e3543cb174e9560ce98ac101be744cc72631a37'
     CLIENTSECRET = '73231b6d2dd2ff4855d42def1fdfa89d665a4b592746f73cf8ebce1308650797'
+
+
+class TMDB:
+
+    APIKEY = 'c10422c248715bff0e3f5fd24bd7d855'
+    BASEURL = 'https://api.themoviedb.org/3{0}'
+    PICTUREURL = 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2{0}'

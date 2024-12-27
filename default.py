@@ -10,7 +10,8 @@ from resources.lib.auth import WebShareClient
 from resources.lib.dialog_utils import dialog_handler, dialog_notify
 from resources.lib.actions import handle_search, handle_most_watched, play_episode, select_streams, show_episodes, show_seasons, top_films, trending_shows
 from resources.lib.trakt import TraktClient
-from resources.lib.config import TRAKTLOGIN
+from resources.lib.config import TMDB, TRAKTLOGIN
+from resources.lib.tmdb import TMDBclient
 from resources.lib.router import router
 
 # Inicializace
@@ -28,6 +29,7 @@ if not my_addon.getSetting('username') or not my_addon.getSetting('password'):
 
 webC = WebShareClient(my_addon.getSetting('username'), my_addon.getSetting('password'))
 traK = TraktClient(TRAKTLOGIN.CLIENTID,TRAKTLOGIN.CLIENTSECRET)
+tmdb = TMDBclient(TMDB.APIKEY)
 
 salt = webC.get_salt(my_addon.getSetting('username'))
 my_addon.setSetting('salt', salt)
@@ -44,4 +46,4 @@ if ( int(my_addon.getSetting('expiretime')) - int(time.time())) < 0:
     my_addon.setSetting('refreshtoken',tokens[0])
     my_addon.setSetting('expiretime', tokens[1])
 
-router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle)
+router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb)
