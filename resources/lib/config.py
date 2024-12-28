@@ -8,6 +8,7 @@ class URL_API:
     IDBM_BASE_URL = 'https://api.themoviedb.org/3{0}'
     REDIRECT_URL = "urn:ietf:wg:oauth:2.0:oob"
     AUTH_TRAKT_URL = "https://trakt.tv/oauth/authorize?response_type=code&client_id={0}&redirect_uri={1}"
+    IN_DB = "special://profile/addon_data/plugin.video.helloworld/movies_cache.db"
 
 
 class ERROR_LVL:

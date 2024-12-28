@@ -1,13 +1,15 @@
+import os
 import time
 import sys
 import urllib.parse
-import xbmcaddon 
+import xbmcaddon, xbmcvfs
 from resources.lib.auth import WebShareClient
 from resources.lib.dialog_utils import dialog_handler, dialog_notify
 from resources.lib.trakt import TraktClient
 from resources.lib.config import TMDB, TRAKTLOGIN
 from resources.lib.tmdb import TMDBclient
 from resources.lib.router import router
+from resources.lib.db import SQlLiteDatabase
 
 # Inicializace
 addon_handle = int(sys.argv[1])
@@ -25,6 +27,13 @@ if not my_addon.getSetting('username') or not my_addon.getSetting('password'):
 webC = WebShareClient(my_addon.getSetting('username'), my_addon.getSetting('password'))
 traK = TraktClient(TRAKTLOGIN.CLIENTID,TRAKTLOGIN.CLIENTSECRET)
 tmdb = TMDBclient(TMDB.APIKEY)
+profile_path = xbmcvfs.translatePath('special://profile')  
+
+# Cesta k databázi
+db_path = os.path.join(profile_path, 'addon_data', 'plugin.video.helloworld', 'movie_cache.db')
+
+
+sqlDB = SQlLiteDatabase(db_path)
 
 salt = webC.get_salt(my_addon.getSetting('username'))
 my_addon.setSetting('salt', salt)
@@ -41,4 +50,4 @@ if ( int(my_addon.getSetting('expiretime')) - int(time.time())) < 0:
     my_addon.setSetting('refreshtoken',tokens[0])
     my_addon.setSetting('expiretime', tokens[1])
 
-router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb)
+router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb, sqlDB)

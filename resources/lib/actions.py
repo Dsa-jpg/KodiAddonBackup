@@ -77,16 +77,33 @@ def select_streams(params):
     else:
         xbmcgui.Dialog().ok('Error', 'No URLs available for this movie.')
 
-def top_films(traK, login, webC, my_addon, addon_handle, tmdb):
+def top_films(traK, login, webC, my_addon, addon_handle, tmdb, sqlDB):
 
+    sqlDB.create_movie_cache_table() 
     # Získání seznamu populárních filmů (limit 50)
     test = traK.get_popular_movies(login, 25)
     
 
     for movie in test:
-        # Generování URL pouze s akcí a názvem filmu
-        poster_url = tmdb.get_poster_path(movie['ids']['tmdb'])
-        overview = tmdb.get_overview(movie['ids']['tmdb'])
+        tmdb_id = movie['ids']['tmdb']
+
+        # Zkusíme načíst data o filmu z cache
+        cached_movie = sqlDB.get_movie_from_cache(tmdb_id)
+
+        if cached_movie:
+            # Pokud je film v cache, použijeme uložená data
+            title, year, overview, poster_url = cached_movie
+        else:
+            # Pokud není film v cache, načteme data z API
+            poster_url = tmdb.get_poster_path(tmdb_id)
+            overview = tmdb.get_overview(tmdb_id)
+            title = movie['title']
+            year = movie['year']
+
+            # Uložíme film do cache
+            sqlDB.add_movie_to_cache(tmdb_id, title, year, overview, poster_url)
+            
+        
         test = webC.urls_list(movie['title'],my_addon.getSetting('token'),str(uuid.uuid4()),2)
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"],"urls": ",".join(test["urls"])})}'
         list_item = xbmcgui.ListItem(f'{movie["title"]} ({movie["year"]})')
@@ -94,7 +111,8 @@ def top_films(traK, login, webC, my_addon, addon_handle, tmdb):
         list_item.setArt({'thumb': poster_url, 'icon': poster_url, 'fanart': poster_url,})
 
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=False)
-
+        
+    sqlDB.close()
     # Ukončení adresáře
     xbmcplugin.endOfDirectory(addon_handle)
 

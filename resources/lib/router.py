@@ -3,13 +3,13 @@ import xbmcplugin
 import xbmcgui
 
 
-def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb):
+def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb,sqlDB):
     # Definice směrování jako slovník, kde klíče jsou akce a hodnoty jsou funkce
     actions = {
         'search': lambda: handle_search(webC, my_addon,tmdb,addon_handle),
         'most_watched': lambda: handle_most_watched(webC, addon_handle, my_addon),
         'select_stream': lambda: select_streams(params),
-        'topfilms': lambda: top_films(traK, TRAKTLOGIN.CLIENTID, webC, my_addon, addon_handle, tmdb),
+        'topfilms': lambda: top_films(traK, TRAKTLOGIN.CLIENTID, webC, my_addon, addon_handle, tmdb,sqlDB),
         'trendingshows': lambda: trending_shows(traK, TRAKTLOGIN.CLIENTID, webC, my_addon, addon_handle, tmdb),
         'list_seasons': lambda: show_seasons(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), addon_handle, tmdb),
         'list_episodes': lambda: show_episodes(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), int(params.get('season')), addon_handle, my_addon, webC, tmdb),
