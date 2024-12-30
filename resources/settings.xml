@@ -19,6 +19,7 @@
 
     <!-- Advanced Settings -->
     <category label="Advanced Settings">
+        <setting id="debug" type="bool" label="Debug" default="false"/>
     </category>
 
     <!-- About -->
