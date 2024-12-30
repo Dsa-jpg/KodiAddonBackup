@@ -138,16 +138,23 @@ def show_seasons(traK, login, show_id, addon_handle, tmdb):
     # Získání seznamu sezón pro konkrétní seriál
     seasons = traK.get_show_seasons(show_id,login)
     xbmcplugin.setContent(addon_handle, 'seasons')
-    #tmdb_id = traK.get_show_id(login,show_id)
+    tmdb_id = traK.get_show_id(login,show_id)
 
     for i,season in enumerate(seasons):
-
-        #response = tmdb.get_show(tmdb_id,i+1)
-        #poster_url = response['poster_path']
+        
         season_number = season["number"]
+        try:
+            # Pokus o načtení detailů sezóny
+            response = tmdb.get_show(tmdb_id, season_number)
+        except RuntimeError as e:
+            xbmc.log(f"Chyba při načítání sezóny {season_number}: {e}", level=xbmc.LOGERROR)
+            continue  # Přeskočení na další iteraci
+        poster_url = TMDB.PICTUREURL.format(response['poster_path'])
+        
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "list_episodes", "show_id": show_id, "season": season_number})}'
         list_item = xbmcgui.ListItem(f'Season {season_number}')
-        #list_item.setArt({'thumb': poster_url, 'icon': poster_url, 'fanart': poster_url})
+        list_item.setInfo('video', {'title': f'Season {season_number}', 'plot': response['overview']})
+        list_item.setArt({'thumb': poster_url, 'fanart': poster_url, 'icon': poster_url})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=True)
 
     xbmcplugin.endOfDirectory(addon_handle)
@@ -158,18 +165,24 @@ def show_episodes(traK, login, show_id, season_number, addon_handle, my_addon, w
     episodes = traK.get_episodes(login, show_id, season_number)
     title = traK.get_show_by_id(login, show_id)
     xbmcplugin.setContent(addon_handle, 'episodes')
+    tmdb_id = traK.get_show_id(login,show_id)
 
     for episode in episodes:
         # Použití metody get() pro bezpečné získání hodnoty 'overview'
+        
+        response = tmdb.get_episode_info(tmdb_id,season_number,episode['number'])
+        poster_url = TMDB.PICTUREURL.format(response['still_path'])
+        overview = response['overview']
+        air_date = response['air_date']
 
         query = f'{title["title"]} - Season {season_number} - Episode {episode["number"]}'
         xbmcgui.Dialog().notification(query, xbmcgui.NOTIFICATION_INFO)
         test = webC.urls_list(query,my_addon.getSetting('token'),str(uuid.uuid4()),4)
-        overview = episode.get("overview", "No overview available.")
         #dummy_url = f'https://example.com/play/{show_id}/{season_number}/{episode["number"]}'
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "play_episode", "url": ".".join(test["urls"])})}'
         list_item = xbmcgui.ListItem(f'{episode["number"]}. {episode["title"]}')
-        list_item.setInfo('video', {'title': episode["title"], 'plot': overview})
+        list_item.setInfo('video', {'title': episode["title"], 'plot': overview , 'airdate': air_date})
+        list_item.setArt({'thumb': poster_url, 'fanart': poster_url})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=False)
 
     xbmcplugin.endOfDirectory(addon_handle)
