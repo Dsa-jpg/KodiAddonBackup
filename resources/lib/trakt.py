@@ -124,5 +124,10 @@ class TraktClient():
         return response
 
 
-    def get_show_id():
-        ...
+    def get_show_id(self, apikey: str, show_id: str):
+        response = self._get(f'/search/trakt/{show_id}', headers={
+            "Content-Type": "application/json",
+            "trakt-api-version": "2",
+            "trakt-api-key": apikey,
+        })
+        return response[0]['show']['ids']['tmdb']

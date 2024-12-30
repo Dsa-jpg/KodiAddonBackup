@@ -138,11 +138,16 @@ def show_seasons(traK, login, show_id, addon_handle, tmdb):
     # Získání seznamu sezón pro konkrétní seriál
     seasons = traK.get_show_seasons(show_id,login)
     xbmcplugin.setContent(addon_handle, 'seasons')
+    #tmdb_id = traK.get_show_id(login,show_id)
 
-    for season in seasons:
+    for i,season in enumerate(seasons):
+
+        #response = tmdb.get_show(tmdb_id,i+1)
+        #poster_url = response['poster_path']
         season_number = season["number"]
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "list_episodes", "show_id": show_id, "season": season_number})}'
         list_item = xbmcgui.ListItem(f'Season {season_number}')
+        #list_item.setArt({'thumb': poster_url, 'icon': poster_url, 'fanart': poster_url})
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=True)
 
     xbmcplugin.endOfDirectory(addon_handle)

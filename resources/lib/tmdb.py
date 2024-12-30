@@ -39,6 +39,10 @@ class TMDBclient:
         response = self._get(f'/tv/{show_id}?api_key={self.apikey}')
         return response['overview']
     
+    def get_show(self, show_id: int,season_number) ->str:
+        response = self._get(f'/tv/{show_id}/season/{season_number}?api_key={self.apikey}')
+        return response
+    
     def multi_search(self, query: str) -> dict:
         response = self._get(f'/search/multi?query={query}&include_adult=false&language=en-US&page=1&api_key={self.apikey}')
         return response['results']
