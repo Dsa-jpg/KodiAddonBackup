@@ -44,18 +44,47 @@ def handle_search(webC, addon, tmbd, addon_handle):
 def handle_most_watched(webC, addon_handle, my_addon):
     """Handling the most watched films"""
     xbmcplugin.setContent(addon_handle, 'movies')
+    
     # Seznam "most watched" filmů, každý film má více streamů
     most_watched_movies = [
-        {'title': 'Avatar'},
-        {'title': 'Titanic'},
-        {'title': 'The Dark Knight'}
+        {'title': 'Avatar', 'duration': 162, 'video_codec': 'h264', 'resolution': '1920x1080', 'aspect_ratio': 1.78, 'audio_codec': 'AAC', 'audio_channels': 2, 'premiere_date': '2005-03-04'},
+        {'title': 'Titanic', 'duration': 195, 'video_codec': 'h264', 'resolution': '1920x1080', 'aspect_ratio': 1.78, 'audio_codec': 'DTS', 'audio_channels': 6, 'premiere_date': '1997-12-19'},
+        {'title': 'The Dark Knight', 'duration': 152, 'video_codec': 'h264', 'resolution': '1920x1080', 'aspect_ratio': 1.78, 'audio_codec': 'AAC', 'audio_channels': 2, 'premiere_date': '2008-07-18'}
     ]
 
     for movie in most_watched_movies:
-        test = webC.urls_list(movie['title'],my_addon.getSetting('token'),str(uuid.uuid4()),2)
+        # Získání streamů pro film
+        test = webC.urls_list(movie['title'], my_addon.getSetting('token'), str(uuid.uuid4()), 2)
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"], "urls": ",".join(test["urls"])})}'
+
+        # Vytvoření ListItem pro film
         list_item = xbmcgui.ListItem(movie['title'])
-        list_item.setInfo('video', {'title': movie['title']})
+        
+        # Přidání streamových informací
+        list_item.addStreamInfo('video', {
+            'codec': movie['video_codec'],
+            'aspect': movie['aspect_ratio'],
+            'width': 1920,  
+            'height': 1080,  
+            'duration': movie['duration'] * 60, 
+            'premiered': movie['premiere_date']
+        })
+        
+        list_item.addStreamInfo('audio', {
+            'codec': movie['audio_codec'],
+            'channels': movie['audio_channels']
+        })
+
+        # Logování pro kontrolu
+        xbmc.log(f"Metadata for movie: {movie['title']}", xbmc.LOGINFO)
+        xbmc.log(f"Duration: {movie['duration'] * 60}", xbmc.LOGINFO)
+        xbmc.log(f"Video Codec: {movie['video_codec']}", xbmc.LOGINFO)
+        xbmc.log(f"Aspect Ratio: {movie['aspect_ratio']}", xbmc.LOGINFO)
+        xbmc.log(f"Audio Codec: {movie['audio_codec']}", xbmc.LOGINFO)
+        xbmc.log(f"Audio Channels: {movie['audio_channels']}", xbmc.LOGINFO)
+        xbmc.log(f"Premiere Date: {movie['premiere_date']}", xbmc.LOGINFO)
+
+        # Přidání položky do seznamu
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=False)
 
     xbmcplugin.endOfDirectory(addon_handle)

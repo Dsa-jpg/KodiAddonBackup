@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<control type="group">
+    <position x="1600" y="900" /> <!-- Nastav pozici ve spodní části obrazovky -->
+    <width>400</width>
+    <height>150</height>
+
+    <!-- Datum vydání -->
+    <control type="label">
+        <position x="0" y="0" />
+        <width>100</width>
+        <height>30</height>
+        <label>$INFO[ListItem.Premiered]</label>
+        <font>font12</font>
+        <textcolor>white</textcolor>
+    </control>
+
+    <!-- Délka videa -->
+    <control type="label">
+        <position x="110" y="0" />
+        <width>80</width>
+        <height>30</height>
+        <label>$INFO[ListItem.Duration]</label>
+        <font>font12</font>
+        <textcolor>white</textcolor>
+    </control>
+
+    <!-- Video kodek -->
+    <control type="label">
+        <position x="200" y="0" />
+        <width>80</width>
+        <height>30</height>
+        <label>$INFO[ListItem.VideoCodec]</label>
+        <font>font12</font>
+        <textcolor>white</textcolor>
+    </control>
+
+    <!-- Rozlišení -->
+    <control type="label">
+        <position x="290" y="0" />
+        <width>80</width>
+        <height>30</height>
+        <label>$INFO[ListItem.VideoResolution]</label>
+        <font>font12</font>
+        <textcolor>white</textcolor>
+    </control>
+
+    <!-- Poměr stran -->
+    <control type="label">
+        <position x="0" y="40" />
+        <width>80</width>
+        <height>30</height>
+        <label>$INFO[ListItem.AspectRatio]</label>
+        <font>font12</font>
+        <textcolor>white</textcolor>
+    </control>
+
+    <!-- Zvukový kodek -->
+    <control type="label">
+        <position x="110" y="40" />
+        <width>80</width>
+        <height>30</height>
+        <label>$INFO[ListItem.AudioCodec]</label>
+        <font>font12</font>
+        <textcolor>white</textcolor>
+    </control>
+
+    <!-- Zvukové kanály -->
+    <control type="label">
+        <position x="200" y="40" />
+        <width>80</width>
+        <height>30</height>
+        <label>$INFO[ListItem.AudioChannels]</label>
+        <font>font12</font>
+        <textcolor>white</textcolor>
+    </control>
+</control>
