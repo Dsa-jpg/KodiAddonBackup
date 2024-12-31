@@ -197,4 +197,14 @@ def settings(my_addon, addon_handle):
     my_addon.openSettings()
     xbmcplugin.endOfDirectory(addon_handle)
 
+def change_login_credentials(my_addon):
+    # Změna přihlašovacích údajů
+    username: str=xbmcgui.Dialog().input('Enter your username', type=xbmcgui.INPUT_ALPHANUM)
+    password: str=xbmcgui.Dialog().input('Enter your password', type=xbmcgui.INPUT_ALPHANUM)
+    my_addon.setSetting('username', username)
+    my_addon.setSetting('password', password)
+    xbmcgui.Dialog().notification('Credentials changed', 'Your credentials have been updated', xbmcgui.NOTIFICATION_INFO)
+    
+    
+
 

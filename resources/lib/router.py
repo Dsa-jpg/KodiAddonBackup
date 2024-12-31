@@ -1,4 +1,4 @@
-from .actions import handle_search, handle_most_watched, select_streams, settings, top_films, trending_shows, show_seasons, show_episodes, play_episode
+from .actions import handle_search, handle_most_watched, select_streams, settings, top_films, trending_shows, show_seasons, show_episodes, play_episode, change_login_credentials
 import xbmcplugin
 import xbmcgui
 
@@ -14,7 +14,8 @@ def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb,
         'list_seasons': lambda: show_seasons(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), addon_handle, tmdb),
         'list_episodes': lambda: show_episodes(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), int(params.get('season')), addon_handle, my_addon, webC, tmdb),
         'play_episode': lambda: play_episode(params.get('url')),
-        'settings': lambda: settings(my_addon,addon_handle)
+        'settings': lambda: settings(my_addon,addon_handle),
+        'change_login_credentials': lambda: change_login_credentials(my_addon)
     }
 
     # Pokud akce existuje v našem slovníku, zavoláme ji
