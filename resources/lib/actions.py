@@ -57,7 +57,7 @@ def handle_most_watched(webC, addon_handle, my_addon):
         test = webC.urls_list(movie['title'], my_addon.getSetting('token'), str(uuid.uuid4()), 2)
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"], "urls": ",".join(test["urls"])})}'
         language = movie.get("language").upper()
-        formatted_title = f"[COLOR blue]{language}[/COLOR] · {movie['title']}"
+        formatted_title = f"[COLOR blue]{language}[/COLOR] [COLOR GREY]·[/COLOR] {movie['title']}"
         # Vytvoření ListItem pro film
         list_item = xbmcgui.ListItem(formatted_title)
         
@@ -158,20 +158,24 @@ def top_films(traK, login, webC, my_addon, addon_handle, tmdb, sqlDB):
             title, year, overview, poster_url = cached_movie
         else:
             # Pokud není film v cache, načteme data z API
-            poster_url = tmdb.get_poster_path(tmdb_id)
+            poster_url = tmdb.get_film_poster_path(tmdb_id)
             overview = tmdb.get_overview(tmdb_id)
             title = movie['title']
             year = movie['year']
 
             # Uložíme film do cache
             sqlDB.add_movie_to_cache(tmdb_id, title, year, overview, poster_url)
-            
-        
+
+        info = tmdb.get_movie_info(tmdb_id)
+        original_language = tmdb.get_language(tmdb_id)
+        formatted_title = f"[COLOR blue]{original_language.upper()}[/COLOR] [COLOR grey]·[/COLOR] {movie['title']} [COLOR grey]({movie['year']})[/COLOR]"
+        fanart_url = tmdb.get_film_fanart_path(tmdb_id)
         test = webC.urls_list(movie['title'],my_addon.getSetting('token'),str(uuid.uuid4()),2)
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"],"urls": ",".join(test["urls"])})}'
-        list_item = xbmcgui.ListItem(f'{movie["title"]} ({movie["year"]})')
+        list_item = xbmcgui.ListItem(formatted_title)
         list_item.setInfo('video', {'title': movie['title'], 'year': movie['year'] , 'plot': overview})
-        list_item.setArt({'thumb': poster_url, 'icon': poster_url, 'fanart': poster_url,})
+        list_item.addStreamInfo('video', {'duration': info['runtime'] * 60, 'airdate': info['release_date']})
+        list_item.setArt({'thumb': poster_url, 'icon': poster_url, 'fanart': fanart_url,})
 
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=False)
         

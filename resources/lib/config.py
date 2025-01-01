@@ -37,3 +37,4 @@ class TMDB:
     APIKEY = 'c10422c248715bff0e3f5fd24bd7d855'
     BASEURL = 'https://api.themoviedb.org/3{0}'
     PICTUREURL = 'https://media.themoviedb.org/t/p/w300_and_h450_bestv2{0}'
+    TRUESIZEURL = 'https://image.tmdb.org/t/p/original/{0}'

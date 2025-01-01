@@ -68,6 +68,34 @@ class TMDBclient:
         response = self._get(f'/tv/{show_id}?api_key={self.apikey}')
         return TMDB.PICTUREURL.format(response['poster_path'])
     
+    def get_film_poster_path(self, show_id: int) -> str:
+        """Gets the poster path for a given show ID.
+        Args:
+            show_id (int): The TMDB show ID.
+        Returns:
+            str: The URL to the poster image."""
+        response = self._get(f'/movie/{show_id}?api_key={self.apikey}')
+        return TMDB.PICTUREURL.format(response['poster_path'])
+    
+    def get_film_fanart_path(self, show_id: int) -> str:
+        """Gets the poster path for a given show ID.
+        Args:
+            show_id (int): The TMDB show ID.
+        Returns:
+            str: The URL to the poster image."""
+        response = self._get(f'/movie/{show_id}/images?api_key={self.apikey}')
+        return TMDB.TRUESIZEURL.format(response['backdrops'][0]['file_path'])
+    
+    def get_movie_info(self, movie_id: int) -> str:
+        """Gets the movie info for a given movie ID.
+        Args:
+            movie_id (int): The TMDB movie ID.
+        Returns:
+            str: The movie info."""
+        
+        response = self._get(f'/movie/{movie_id}?api_key={self.apikey}')
+        return response
+    
     def get_show_overview(self, show_id: int) -> str:
         """Gets the overview for a given show ID.
         Args:

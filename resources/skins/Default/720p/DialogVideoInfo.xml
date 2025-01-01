@@ -9,7 +9,7 @@
         <position x="0" y="0" />
         <width>100</width>
         <height>30</height>
-        <label>$INFO[ListItem.Premiered]</label>
+        <label>$INFO[ListItem.Aired]</label>
         <font>font12</font>
         <textcolor>white</textcolor>
     </control>
