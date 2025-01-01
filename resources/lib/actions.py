@@ -221,7 +221,8 @@ def show_seasons(traK, login, show_id, addon_handle, tmdb):
         except RuntimeError as e:
             xbmc.log(f"Chyba při načítání sezóny {season_number}: {e}", level=xbmc.LOGERROR)
             continue  # Přeskočení na další iteraci
-        total_runtime = sum([episode['runtime'] for episode in response['episodes']]) # Bugging when there are no episodes or runtime is None
+        total_runtime = sum([episode['runtime'] for episode in response['episodes'] if episode.get('runtime') is not None]) # Bugging when there are no episodes or runtime is None
+
         xbmc.log(f"Total runtime for season {season_number}: {total_runtime}", level=xbmc.LOGINFO)
         poster_url = TMDB.PICTUREURL.format(response['poster_path'])
         fanart_url = tmdb.get_show_season_image(tmdb_id, season_number)
