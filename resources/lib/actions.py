@@ -256,7 +256,7 @@ def show_episodes(traK, login, show_id, season_number, addon_handle, my_addon, w
         xbmcgui.Dialog().notification(query, xbmcgui.NOTIFICATION_INFO)
         test = webC.urls_list(query,my_addon.getSetting('token'),str(uuid.uuid4()),4)
         #dummy_url = f'https://example.com/play/{show_id}/{season_number}/{episode["number"]}'
-        play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "play_episode", "url": ".".join(test["urls"])})}'
+        play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "play_episode", "title": episode["title"], "url": ".".join(test["urls"]), "show_title": title["title"], "season": season_number, "episode": episode["number"]})}'
         list_item = xbmcgui.ListItem(f'{episode["number"]}. {episode["title"]}')
         list_item.setInfo('video', {'title': episode["title"], 'plot': response['overview'] , 'aired': response['air_date']})
         list_item.addStreamInfo('video', {'duration': str(duration)})
@@ -266,9 +266,26 @@ def show_episodes(traK, login, show_id, season_number, addon_handle, my_addon, w
     xbmcplugin.endOfDirectory(addon_handle)
 
 
-def play_episode(url):
-    xbmcgui.Dialog().notification('Playing Episode', 'Starting playback...', xbmcgui.NOTIFICATION_INFO)
-    xbmc.Player().play(url)
+def play_episode(url, params):
+    show_title = params.get('show_title', 'Unknown Show')
+    season_number = params.get('season', '0')
+    episode_number = params.get('episode', '0')
+    episode_title = params.get('title', 'Unknown Episode')
+
+    # Nastavení ListItem s meta informacemi
+    list_item = xbmcgui.ListItem(show_title)
+    list_item.setInfo('video', {
+        'title': episode_title,  # Název seriálu
+        'season': int(season_number),
+        'episode': int(episode_number),
+        'mediatype': 'episode',
+        'plot': f'Season {season_number}, Episode {episode_number}: {episode_title}'  # Sezóna, Epizoda a název epizody
+    })
+    list_item.setProperty('IsPlayable', 'true')
+
+    # Notifikace a přehrávání
+    xbmcgui.Dialog().notification('Playing Episode', f'{show_title} - S{int(season_number):02}E{int(episode_number):02}', xbmcgui.NOTIFICATION_INFO)
+    xbmc.Player().play(url, listitem=list_item)
 
 def settings(my_addon, addon_handle):
     # Zobrazení nastavení

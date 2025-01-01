@@ -13,7 +13,7 @@ def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb,
         'trendingshows': lambda: trending_shows(traK, TRAKTLOGIN.CLIENTID, webC, my_addon, addon_handle, tmdb),
         'list_seasons': lambda: show_seasons(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), addon_handle, tmdb),
         'list_episodes': lambda: show_episodes(traK, TRAKTLOGIN.CLIENTID, params.get('show_id'), int(params.get('season')), addon_handle, my_addon, webC, tmdb),
-        'play_episode': lambda: play_episode(params.get('url')),
+        'play_episode': lambda: play_episode(params.get('url'),params),
         'settings': lambda: settings(my_addon,addon_handle),
         'change_login_credentials': lambda: change_login_credentials(my_addon)
     }
