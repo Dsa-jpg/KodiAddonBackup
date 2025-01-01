@@ -200,6 +200,7 @@ def trending_shows(traK, login, webC, my_addon, addon_handle, tmdb):
         list_item = xbmcgui.ListItem(formatted_title)
         list_item.setInfo('video', {'title': show["title"], 'year': show["year"], 'plot': overview, 'premiered': info["last_air_date"]})
         list_item.setArt({'thumb': poster_url, 'icon': poster_url, 'fanart': fanart_url})
+        #TODO: Add stream info runtime across all seasons
         xbmcplugin.addDirectoryItem(handle=addon_handle, url=play_url, listitem=list_item, isFolder=True)
 
     # Ukončení adresáře
@@ -224,7 +225,7 @@ def show_seasons(traK, login, show_id, addon_handle, tmdb):
         total_runtime = sum([episode['runtime'] for episode in response['episodes'] if episode.get('runtime') is not None]) # Bugging when there are no episodes or runtime is None
 
         xbmc.log(f"Total runtime for season {season_number}: {total_runtime}", level=xbmc.LOGINFO)
-        poster_url = TMDB.PICTUREURL.format(response['poster_path'])
+        poster_url = TMDB.PICTUREURL.format(response['poster_path']) # TODO: Add fallback image if poster_path is None
         fanart_url = tmdb.get_show_season_image(tmdb_id, season_number)
         
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "list_episodes", "show_id": show_id, "season": season_number})}'
@@ -255,7 +256,7 @@ def show_episodes(traK, login, show_id, season_number, addon_handle, my_addon, w
         query = f'{title["title"]} - Season {season_number} - Episode {episode["number"]}'
         xbmcgui.Dialog().notification(query, xbmcgui.NOTIFICATION_INFO)
         test = webC.urls_list(query,my_addon.getSetting('token'),str(uuid.uuid4()),4)
-        #dummy_url = f'https://example.com/play/{show_id}/{season_number}/{episode["number"]}'
+
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "play_episode", "title": episode["title"], "url": ".".join(test["urls"]), "show_title": title["title"], "season": season_number, "episode": episode["number"]})}'
         list_item = xbmcgui.ListItem(f'{episode["number"]}. {episode["title"]}')
         list_item.setInfo('video', {'title': episode["title"], 'plot': response['overview'] , 'aired': response['air_date']})
