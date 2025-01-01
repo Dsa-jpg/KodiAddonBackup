@@ -47,18 +47,19 @@ def handle_most_watched(webC, addon_handle, my_addon):
     
     # Seznam "most watched" filmů, každý film má více streamů
     most_watched_movies = [
-        {'title': 'Avatar', 'duration': 162, 'video_codec': 'h264', 'resolution': '1920x1080', 'aspect_ratio': 1.78, 'audio_codec': 'AAC', 'audio_channels': 2, 'premiere_date': '2005-03-04'},
-        {'title': 'Titanic', 'duration': 195, 'video_codec': 'h264', 'resolution': '1920x1080', 'aspect_ratio': 1.78, 'audio_codec': 'DTS', 'audio_channels': 6, 'premiere_date': '1997-12-19'},
-        {'title': 'The Dark Knight', 'duration': 152, 'video_codec': 'h264', 'resolution': '1920x1080', 'aspect_ratio': 1.78, 'audio_codec': 'AAC', 'audio_channels': 2, 'premiere_date': '2008-07-18'}
+        {'title': 'Avatar','language': 'en', 'duration': 162, 'video_codec': 'h264', 'resolution': '1920x1080', 'aspect_ratio': 1.78, 'audio_codec': 'AAC', 'audio_channels': 2, 'premiere_date': '2005-03-04'},
+        {'title': 'Titanic','language': 'en', 'duration': 195, 'video_codec': 'h264', 'resolution': '1920x1080', 'aspect_ratio': 1.78, 'audio_codec': 'DTS', 'audio_channels': 6, 'premiere_date': '1997-12-19'},
+        {'title': 'The Dark Knight','language': 'en', 'duration': 152, 'video_codec': 'h264', 'resolution': '1920x1080', 'aspect_ratio': 1.78, 'audio_codec': 'AAC', 'audio_channels': 2, 'premiere_date': '2008-07-18'}
     ]
 
     for movie in most_watched_movies:
         # Získání streamů pro film
         test = webC.urls_list(movie['title'], my_addon.getSetting('token'), str(uuid.uuid4()), 2)
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"], "urls": ",".join(test["urls"])})}'
-
+        language = movie.get("language").upper()
+        formatted_title = f"[COLOR blue]{language}[/COLOR] · {movie['title']}"
         # Vytvoření ListItem pro film
-        list_item = xbmcgui.ListItem(movie['title'])
+        list_item = xbmcgui.ListItem(formatted_title)
         
         # Přidání streamových informací
         list_item.addStreamInfo('video', {
@@ -89,6 +90,8 @@ def handle_most_watched(webC, addon_handle, my_addon):
 
     xbmcplugin.endOfDirectory(addon_handle)
 
+
+"""
 def select_streams(params):
 
     movie_title = params.get('title', 'Unknown Movie')
@@ -100,11 +103,42 @@ def select_streams(params):
         if selected_index != -1:
             selected_url = movie_urls[selected_index]
             xbmcgui.Dialog().notification('Playing', movie_title, xbmcgui.NOTIFICATION_INFO)
-            xbmc.Player().play(selected_url)
+            xbmc.Player().play(selected_url,listitem=xbmcgui.ListItem(movie_title))
         else:
             xbmcgui.Dialog().ok('Error', 'No stream selected.')
     else:
         xbmcgui.Dialog().ok('Error', 'No URLs available for this movie.')
+"""
+
+def select_streams(params):
+    movie_title = params.get('title', 'Unknown Movie')
+    movie_urls = params.get('urls', '').split(',')
+
+    if movie_urls:
+        # Výchozí data o streamech
+        stream_details = [
+            {'resolution': '1920x1080', 'duration': '02:30:00', 'codec': 'h264'},
+            {'resolution': '1280x720', 'duration': '02:00:00', 'codec': 'h265'},
+            {'resolution': '640x360', 'duration': '01:30:00', 'codec': 'mpeg4'}
+        ]
+
+        # Vytvoření seznamu možností pro dialog
+        stream_options = [
+            f"{detail['resolution']} - {detail['duration']} - {detail['codec']}"
+            for detail in stream_details
+        ]
+
+        # Zobrazení dialogu pro výběr streamu
+        selected_index = xbmcgui.Dialog().select(f'Select Stream for {movie_title}', stream_options)
+        if selected_index != -1:
+            selected_url = movie_urls[selected_index]
+            xbmcgui.Dialog().notification('Playing', movie_title, xbmcgui.NOTIFICATION_INFO)
+            xbmc.Player().play(selected_url,listitem=xbmcgui.ListItem(movie_title))
+        else:
+            xbmcgui.Dialog().ok('Error', 'No stream selected.')
+    else:
+        xbmcgui.Dialog().ok('Error', 'No URLs available for this movie.')
+
 
 def top_films(traK, login, webC, my_addon, addon_handle, tmdb, sqlDB):
 
