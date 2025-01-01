@@ -86,6 +86,25 @@ class TMDBclient:
         response = self._get(f'/movie/{show_id}/images?api_key={self.apikey}')
         return TMDB.TRUESIZEURL.format(response['backdrops'][0]['file_path'])
     
+    def get_show_fanart_path(self, show_id: int) -> str:
+        """Gets the poster path for a given show ID.
+        Args:
+            show_id (int): The TMDB show ID.
+        Returns:
+            str: The URL to the poster image."""
+        response = self._get(f'/tv/{show_id}/images?api_key={self.apikey}')
+        return TMDB.TRUESIZEURL.format(response['backdrops'][0]['file_path'])
+    
+    def get_show_season_image(self, show_id: int, season_number: int) -> str:
+        """Gets the poster path for a given show ID.
+        Args:
+            show_id (int): The TMDB show ID.
+            season_number (int): The season number.
+        Returns:
+            str: The URL to the poster image."""
+        response = self._get(f'/tv/{show_id}/season/{season_number}/images?api_key={self.apikey}')
+        return TMDB.TRUESIZEURL.format(response['posters'][0]['file_path'])
+    
     def get_movie_info(self, movie_id: int) -> str:
         """Gets the movie info for a given movie ID.
         Args:
@@ -94,6 +113,16 @@ class TMDBclient:
             str: The movie info."""
         
         response = self._get(f'/movie/{movie_id}?api_key={self.apikey}')
+        return response
+    
+    def get_show_info(self, show_id: int) -> str:
+        """Gets the show info for a given show ID.
+        Args:
+            show_id (int): The TMDB show ID.
+        Returns:
+            str: The show info."""
+        
+        response = self._get(f'/tv/{show_id}?api_key={self.apikey}')
         return response
     
     def get_show_overview(self, show_id: int) -> str:
@@ -115,6 +144,7 @@ class TMDBclient:
         
         response = self._get(f'/tv/{show_id}/season/{season_number}?api_key={self.apikey}')
         return response
+    
     
     def get_episode_info(self, show_id: int, season_number: int, episode_number: int) -> str:
         """Gets the episode info for a given show ID, season and episode number.
