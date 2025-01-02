@@ -105,14 +105,14 @@ class TMDBclient:
         response = self._get(f'/tv/{show_id}/season/{season_number}/images?api_key={self.apikey}')
         return TMDB.TRUESIZEURL.format(response['posters'][0]['file_path'])
     
-    def get_movie_info(self, movie_id: int) -> str:
+    def get_movie_info(self, movie_id: int, language : str = "en-Us") -> str:
         """Gets the movie info for a given movie ID.
         Args:
             movie_id (int): The TMDB movie ID.
         Returns:
             str: The movie info."""
         
-        response = self._get(f'/movie/{movie_id}?api_key={self.apikey}')
+        response = self._get(f'/movie/{movie_id}?api_key={self.apikey}&language={language}')
         return response
     
     def get_show_info(self, show_id: int) -> str:

@@ -166,11 +166,11 @@ def top_films(traK, login, webC, my_addon, addon_handle, tmdb, sqlDB):
             # Uložíme film do cache
             sqlDB.add_movie_to_cache(tmdb_id, title, year, overview, poster_url)
 
-        info = tmdb.get_movie_info(tmdb_id)
+        info = tmdb.get_movie_info(tmdb_id,"cs-CZ")
         original_language = tmdb.get_language(tmdb_id)
         formatted_title = f"[COLOR blue]{original_language.upper()}[/COLOR] [COLOR grey]·[/COLOR] {movie['title']} [COLOR grey]({movie['year']})[/COLOR]"
         fanart_url = tmdb.get_film_fanart_path(tmdb_id)
-        test = webC.urls_list(movie['title'],my_addon.getSetting('token'),str(uuid.uuid4()),2)
+        test = webC.urls_list(info['title'],my_addon.getSetting('token'),str(uuid.uuid4()),2)
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"],"urls": ",".join(test["urls"])})}'
         list_item = xbmcgui.ListItem(formatted_title)
         list_item.setInfo('video', {'title': movie['title'], 'year': movie['year'] , 'plot': overview, 'premiered': info['release_date']})

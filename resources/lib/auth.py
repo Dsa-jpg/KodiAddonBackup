@@ -1,4 +1,5 @@
 import datetime
+import re
 import xml.etree.ElementTree as ET
 from .config import URL_API, ERROR_LVL
 import requests
@@ -135,6 +136,19 @@ class WebShareClient():
                 continue
             ident = film.find('ident').text
 
+            #TODO: Add a filter to exclude clips and trailers and films with size less than 1GB
+            """ 
+            name = film.find('name').text
+            regex_pattern = rf"^(?!.*(?:clip|trailer)).*{re.escape(query)}.*$"
+            filter = re.search(regex_pattern, name, re.IGNORECASE)
+            if not filter:
+                continue
+
+            size = f"{int(film.find('size').text) / (1024**3):.2f}"
+            if float(size) < 1:
+                continue
+            """
+            
             # Get file download link
             _file_link_response = self._post("/file_link/", {
                     "ident": ident,
