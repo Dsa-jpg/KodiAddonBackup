@@ -1,6 +1,6 @@
 from functools import wraps
-from .logging import logged_message
-from .config import ERROR_LVL
+from resources.lib.core.logging import logged_message
+from resources.lib.core.config import ERROR_LVL
 
 def log_exceptions(func):
     @wraps(func)  # Zachová název a docstring původní funkce

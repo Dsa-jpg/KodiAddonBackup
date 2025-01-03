@@ -24,10 +24,14 @@ def dialog_notify(notification_title,
                   code):
     
     dialog = xbmcgui.Dialog()
+    if my_addon.getSetting('debug') == 'false':
+        return None
     dialog.notification(f'The {notification_title} was successfully retrieved.', f'Your {notification_title} is {code}', xbmcgui.NOTIFICATION_INFO, 5000)
 
 def dialog_ok(notification_title,
                   code):
     
     dialog = xbmcgui.Dialog()
+    if my_addon.getSetting('debug') == 'false':
+        return None
     dialog.ok(f'The {notification_title} was successfully retrieved.', f'Your {notification_title} is {code}')

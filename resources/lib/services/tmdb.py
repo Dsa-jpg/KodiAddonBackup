@@ -1,6 +1,6 @@
 import requests
-from .config import ERROR_LVL, TMDB
-from .logging import logged_message
+from resources.lib.core.config import ERROR_LVL, TMDB
+from resources.lib.core.logging import logged_message
 
 
 

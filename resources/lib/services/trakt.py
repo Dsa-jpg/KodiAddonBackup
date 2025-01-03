@@ -1,10 +1,10 @@
 from datetime import datetime
 import webbrowser
-from .config import URL_API, ERROR_LVL
+from resources.lib.core.config import URL_API, ERROR_LVL
 import requests
 import json
-from .logging import logged_message
-from .dialog_utils import dialog_handler, dialog_notify, dialog_ok
+from resources.lib.core.logging import logged_message
+from resources.lib.utils.dialog_utils import dialog_handler
 import xbmcaddon # type: ignore
 
 my_addon = xbmcaddon.Addon()

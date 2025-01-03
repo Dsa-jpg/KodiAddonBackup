@@ -1,7 +1,7 @@
 import uuid
 import urllib
 import xbmcgui # type: ignore
-from resources.lib.dialog_utils import dialog_notify
+from resources.lib.utils.dialog_utils import dialog_notify
 import xbmcplugin, xbmc
 from .config import TMDB
 

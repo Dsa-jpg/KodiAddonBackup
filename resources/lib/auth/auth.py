@@ -1,11 +1,11 @@
 import datetime
 import re
 import xml.etree.ElementTree as ET
-from .config import URL_API, ERROR_LVL
+from resources.lib.core.config import URL_API, ERROR_LVL
 import requests
 import hashlib
 from passlib.hash import md5_crypt
-from .logging import logged_message
+from resources.lib.core.logging import logged_message
 
 
 class WebShareClient():

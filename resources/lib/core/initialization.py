@@ -3,12 +3,12 @@ import time
 import sys
 import urllib.parse
 import xbmcaddon, xbmcvfs
-from resources.lib.auth import WebShareClient
-from resources.lib.trakt import TraktClient
-from resources.lib.config import TMDB, TRAKTLOGIN
-from resources.lib.tmdb import TMDBclient
-from resources.lib.db import SQlLiteDatabase
-from resources.lib.dialog_utils import dialog_handler
+from resources.lib.auth.auth import WebShareClient
+from resources.lib.services.trakt import TraktClient
+from .config import TMDB, TRAKTLOGIN
+from resources.lib.services.tmdb import TMDBclient
+from resources.lib.db.db import SQlLiteDatabase
+from resources.lib.utils.dialog_utils import dialog_handler
 
 def initialize_addon():
     addon_handle = int(sys.argv[1])
