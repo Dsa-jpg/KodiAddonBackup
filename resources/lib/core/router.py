@@ -1,6 +1,7 @@
 from .actions import handle_search, handle_most_watched, select_streams, settings, top_films, trending_shows, show_seasons, show_episodes, play_episode, change_login_credentials
 import xbmcplugin
 import xbmcgui
+from resources.lib.model.item import DirectoryItem
 
 
 def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb,sqlDB):
@@ -26,34 +27,35 @@ def router(action, params, traK, TRAKTLOGIN, webC, my_addon, addon_handle, tmdb,
         xbmcplugin.setContent(addon_handle, 'movies')
 
         # Přidání položky "Search"
-        search_url = f'plugin://plugin.video.helloworld/?action=search'
-        search_li = xbmcgui.ListItem('Search')
-        search_li.setInfo('video', {'title': 'Search for movies or series'})
-        search_li.setArt({'icon': 'special://home/addons/plugin.video.helloworld/resources/icons/search.png'})
-        xbmcplugin.addDirectoryItem(handle=addon_handle, url=search_url, listitem=search_li, isFolder=True)
+        DirectoryItem('Search', 
+                      f'plugin://plugin.video.helloworld/?action=search',
+                      True,
+                      {'title': 'Search for movies or series'},
+                      {'icon': 'special://home/addons/plugin.video.helloworld/resources/icons/search.png'}).add_to_directory(addon_handle)
 
         # Přidání položky "Most Watched"
-        most_watched_url = f'plugin://plugin.video.helloworld/?action=most_watched'
-        most_watched_li = xbmcgui.ListItem('Most Watched')
-        most_watched_li.setInfo('video', {'title': 'Most watched movies'})
-        xbmcplugin.addDirectoryItem(handle=addon_handle, url=most_watched_url, listitem=most_watched_li, isFolder=True)
-
+        DirectoryItem('Most Watched', 
+                      f'plugin://plugin.video.helloworld/?action=most_watched',
+                      True,
+                      {'title': 'Most watched movies'}).add_to_directory(addon_handle)
+        
         # Přidání položky "Top 50 films"
-        topfilms_url = f'plugin://plugin.video.helloworld/?action=topfilms'
-        topfilms_li = xbmcgui.ListItem('Top Films')
-        topfilms_li.setInfo('video', {'title': 'Top 50 films all time'})
-        xbmcplugin.addDirectoryItem(handle=addon_handle, url=topfilms_url, listitem=topfilms_li, isFolder=True)
-
+        DirectoryItem('Top Films', 
+                      f'plugin://plugin.video.helloworld/?action=topfilms',
+                      True,
+                      {'title': 'Top 50 films all time'}).add_to_directory(addon_handle)
+        
         # Přidání položky "Trending shows"
-        trendingshows_url = f'plugin://plugin.video.helloworld/?action=trendingshows'
-        trendingshows_li = xbmcgui.ListItem('Trending shows')
-        trendingshows_li.setInfo('video', {'title': 'Top 50 Trending shows'})
-        xbmcplugin.addDirectoryItem(handle=addon_handle, url=trendingshows_url, listitem=trendingshows_li, isFolder=True)
-
+        DirectoryItem('Trending Shows', 
+                      f'plugin://plugin.video.helloworld/?action=trendingshows',
+                      True,
+                      {'title': 'Trending shows'}).add_to_directory(addon_handle)
+        
         # Open addon Settings
-        settings_url = 'plugin://plugin.video.helloworld/?action=settings'
-        settings_li = xbmcgui.ListItem('Settings')
-        settings_li.setInfo('video', {'title': 'Settings'})
-        xbmcplugin.addDirectoryItem(handle=addon_handle, url=settings_url, listitem=settings_li, isFolder=False)
+        DirectoryItem('Settings', 
+                      f'plugin://plugin.video.helloworld/?action=settings',
+                      True,
+                      {'title': 'Settings'}).add_to_directory(addon_handle)
+        
 
         xbmcplugin.endOfDirectory(addon_handle)
