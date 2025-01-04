@@ -158,7 +158,7 @@ def top_films(traK, login, webC, my_addon, addon_handle, tmdb, sqlDB):
             title, year, overview, poster_url = cached_movie
         else:
             # Pokud není film v cache, načteme data z API
-            poster_url = tmdb.get_film_poster_path(tmdb_id)
+            poster_url = tmdb.get_poster_path(tmdb_id)
             overview = tmdb.get_overview(tmdb_id)
             title = movie['title']
             year = movie['year']
@@ -167,9 +167,9 @@ def top_films(traK, login, webC, my_addon, addon_handle, tmdb, sqlDB):
             sqlDB.add_movie_to_cache(tmdb_id, title, year, overview, poster_url)
 
         info = tmdb.get_movie_info(tmdb_id,"cs-CZ")
-        original_language = tmdb.get_language(tmdb_id)
+        original_language = tmdb.get_language(tmdb_id, "movie")
         formatted_title = f"[COLOR blue]{original_language.upper()}[/COLOR] [COLOR grey]·[/COLOR] {movie['title']} [COLOR grey]({movie['year']})[/COLOR]"
-        fanart_url = tmdb.get_film_fanart_path(tmdb_id)
+        fanart_url = tmdb.get_fanart_path(tmdb_id)
         test = webC.urls_list(info['title'],my_addon.getSetting('token'),str(uuid.uuid4()),2)
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"],"urls": ",".join(test["urls"])})}'
         list_item = xbmcgui.ListItem(formatted_title)
@@ -188,12 +188,12 @@ def trending_shows(traK, login, webC, my_addon, addon_handle, tmdb):
     trending_shows = traK.get_trending_shows(login, 25)
 
     for show in trending_shows:
-        poster_url = tmdb.get_show_poster_path(show['ids']['tmdb'])
-        overview = tmdb.get_show_overview(show['ids']['tmdb'])
+        poster_url = tmdb.get_poster_path(show['ids']['tmdb'], "tv")
+        overview = tmdb.get_overview(show['ids']['tmdb'], "tv")
         info = tmdb.get_show_info(show['ids']['tmdb'])
         geners = [genre['name'] for genre in info['genres']]
         formatted_title = f"[COLOR blue]{info['original_language'].upper()}[/COLOR] [COLOR grey]·[/COLOR] {show['title']} [COLOR grey]({show['year']})[/COLOR] [COLOR grey]{'/'.join(geners)}[/COLOR]"
-        fanart_url = tmdb.get_show_fanart_path(show['ids']['tmdb'])
+        fanart_url = tmdb.get_fanart_path(show['ids']['tmdb'], "tv")
         
         # Generování URL pro zobrazení sezón
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "list_seasons", "show_id": show["ids"]["trakt"]})}'
@@ -218,7 +218,7 @@ def show_seasons(traK, login, show_id, addon_handle, tmdb):
         season_number = season["number"]
         try:
             # Pokus o načtení detailů sezóny
-            response = tmdb.get_show(tmdb_id, season_number)
+            response = tmdb.get_season_info(tmdb_id, season_number)
         except RuntimeError as e:
             xbmc.log(f"Chyba při načítání sezóny {season_number}: {e}", level=xbmc.LOGERROR)
             continue  # Přeskočení na další iteraci
@@ -248,7 +248,7 @@ def show_episodes(traK, login, show_id, season_number, addon_handle, my_addon, w
     for episode in episodes:
         # Použití metody get() pro bezpečné získání hodnoty 'overview'
         
-        response = tmdb.get_episode_info(tmdb_id,season_number,episode['number'])
+        response = tmdb.get_episode_info(tmdb_id, season_number, episode["number"])
         poster_url = TMDB.PICTUREURL.format(response['still_path'])
         fanart_url = TMDB.TRUESIZEURL.format(response['still_path'])
         duration = response['runtime'] * 60

@@ -1,6 +1,7 @@
 import requests
 from resources.lib.core.config import ERROR_LVL, TMDB
 from resources.lib.core.logging import logged_message
+from typing import Dict, Optional
 
 
 
@@ -10,6 +11,9 @@ class TMDBclient:
     def __init__(self, apikey: str):
         self.apikey = apikey
         self.session = requests.Session()
+        self.base_url = TMDB.BASEURL
+        self.picture_url = TMDB.PICTUREURL
+        self.fanart_url = TMDB.TRUESIZEURL
     
     def _get(self, path: str, headers:dict = None) -> str:
         """Internal method to make a GET request to the TMDB API.
@@ -20,151 +24,128 @@ class TMDBclient:
             str: The response text.
         Raises:
             RuntimeError: If the request fails."""
-        
+        url = self.base_url.format(path)
         try:
-            response = self.session.get(TMDB.BASEURL.format(path), headers=headers or {})
+            response = self.session.get(url=url, headers=headers or {}, timeout=10)
             response.raise_for_status()
             return response.json()
-        except requests.RequestException as e:
-            logged_message(f"Request to {path} failed: {e}", ERROR_LVL.LOGWARNING)
-            raise RuntimeError(f"API request to {path} failed") from e
-        
-    def get_poster_path(self, movie_id: int) -> str:
-        """Gets the poster path for a given movie ID.
+        except requests.HTTPError as http_e:
+            logged_message(f"HTTP error: {http_e}", ERROR_LVL.LOGWARNING)
+        except requests.RequestException as req_e:
+            logged_message(f"Request to {path} failed: {req_e}", ERROR_LVL.LOGWARNING)
+        except ValueError as v_e:
+            logged_message(f"Value error: {v_e}", ERROR_LVL.LOGWARNING)
+        raise RuntimeError(f"API request to {path} failed")
+    
+
+    def get_poster_path(self, content_id: int, content_type: str="movie") ->  Optional[str]:
+        """Gets the poster path for a given movie/show ID.
         Args:
-            movie_id (int): The TMDB movie ID.
+            content_id (int): The TMDB movie ID.
+            content_type (str): The type of content (movie or show).
         Returns:
             str: The URL to the poster image."""
         
-        response = self._get(f'/movie/{movie_id}?api_key={self.apikey}')
-        return TMDB.PICTUREURL.format(response['poster_path'])
+        response = self._get(f'/{content_type}/{content_id}?api_key={self.apikey}')
+        return self.picture_url.format(response.get('poster_path')) if response else None
     
-    def get_overview(self, movie_id: int) -> str:
-        """Gets the overview for a given movie ID.
+    def get_overview(self, content_id: int, content_type: str="movie" ) ->  Optional[str]:
+        """Gets the overview for a given movie/show ID.
         Args:
-            movie_id (int): The TMDB movie ID.
+            content_id (int): The TMDB movie ID.
+            content_type (str): The type of content (movie or show).
         Returns:
-            str: The movie overview."""
-        
-        response = self._get(f'/movie/{movie_id}?api_key={self.apikey}')
-        return response['overview']
+            str: The movie/show overview."""
+
+        response = self._get(f'/{content_type}/{content_id}?api_key={self.apikey}')
+        return response.get('overview') if response else None
     
-    def get_language(self, movie_id: int) -> str:
-        """Gets the original language for a given movie ID.
+    def get_language(self, content_id: int, content_type: str="movie" ) ->  Optional[str]:
+        """Gets the language for a given movie/show ID.
         Args:
-            movie_id (int): The TMDB movie ID.
+            content_id (int): The TMDB movie ID.
+            content_type (str): The type of content (movie or show).
         Returns:
-            str: The original language of the movie."""
-        
-        response = self._get(f'/movie/{movie_id}?api_key={self.apikey}')
-        return response['original_language']
+            str: The movie/show language."""
+
+        response = self._get(f'/{content_type}/{content_id}?api_key={self.apikey}')
+        return response.get('original_language') if response else None
     
-    def get_show_poster_path(self, show_id: int) -> str:
-        """Gets the poster path for a given show ID.
+    def get_fanart_path(self, content_id: int, content_type: str="movie" ) ->  Optional[str]:
+        """Gets the fanart path for a given movie/show ID.
         Args:
-            show_id (int): The TMDB show ID.
+            content_id (int): The TMDB movie ID.
+            content_type (str): The type of content (movie or show).
         Returns:
-            str: The URL to the poster image."""
-        response = self._get(f'/tv/{show_id}?api_key={self.apikey}')
-        return TMDB.PICTUREURL.format(response['poster_path'])
-    
-    def get_film_poster_path(self, show_id: int) -> str:
-        """Gets the poster path for a given show ID.
-        Args:
-            show_id (int): The TMDB show ID.
-        Returns:
-            str: The URL to the poster image."""
-        response = self._get(f'/movie/{show_id}?api_key={self.apikey}')
-        return TMDB.PICTUREURL.format(response['poster_path'])
-    
-    def get_film_fanart_path(self, show_id: int) -> str:
-        """Gets the poster path for a given show ID.
-        Args:
-            show_id (int): The TMDB show ID.
-        Returns:
-            str: The URL to the poster image."""
-        response = self._get(f'/movie/{show_id}/images?api_key={self.apikey}')
-        return TMDB.TRUESIZEURL.format(response['backdrops'][0]['file_path'])
-    
-    def get_show_fanart_path(self, show_id: int) -> str:
-        """Gets the poster path for a given show ID.
-        Args:
-            show_id (int): The TMDB show ID.
-        Returns:
-            str: The URL to the poster image."""
-        response = self._get(f'/tv/{show_id}/images?api_key={self.apikey}')
-        return TMDB.TRUESIZEURL.format(response['backdrops'][0]['file_path'])
-    
-    def get_show_season_image(self, show_id: int, season_number: int) -> str:
-        """Gets the poster path for a given show ID.
+            str: The URL to the fanart image."""
+
+        response = self._get(f'/{content_type}/{content_id}?api_key={self.apikey}')
+        if response and response.get('backdrops'):
+            return self.fanart_url.format(response['backdrops'][0].get('file_path'))
+        return None
+
+    def get_show_season_image(self, show_id: int, season_number: int) -> Optional[str]:
+        """Gets the image for a given show season.
         Args:
             show_id (int): The TMDB show ID.
             season_number (int): The season number.
         Returns:
-            str: The URL to the poster image."""
+            str: The URL to the image."""
+        
         response = self._get(f'/tv/{show_id}/season/{season_number}/images?api_key={self.apikey}')
-        return TMDB.TRUESIZEURL.format(response['posters'][0]['file_path'])
-    
-    def get_movie_info(self, movie_id: int, language : str = "en-Us") -> str:
-        """Gets the movie info for a given movie ID.
+        if response and response.get('posters'):
+            return self.fanart_url.format(response['posters'][0].get('file_path'))
+        return None
+
+    def get_movie_info(self, movie_id: int, language: str = "en-US") -> Optional[Dict]:
+        """Gets detailed movie info.
         Args:
             movie_id (int): The TMDB movie ID.
+            language (str): The language to use.
         Returns:
-            str: The movie info."""
+            dict: The movie info."""
         
-        response = self._get(f'/movie/{movie_id}?api_key={self.apikey}&language={language}')
-        return response
-    
-    def get_show_info(self, show_id: int) -> str:
-        """Gets the show info for a given show ID.
+        return self._get(f'/movie/{movie_id}?api_key={self.apikey}&language={language}')
+
+    def get_show_info(self, show_id: int, language: str = "en-US") -> Optional[Dict]:
+        """Gets detailed show info.
         Args:
             show_id (int): The TMDB show ID.
+            language (str): The language to use.
         Returns:
-            str: The show info."""
+            dict: The show info."""
         
-        response = self._get(f'/tv/{show_id}?api_key={self.apikey}')
-        return response
+        return self._get(f'/tv/{show_id}?api_key={self.apikey}&language={language}')
     
-    def get_show_overview(self, show_id: int) -> str:
-        """Gets the overview for a given show ID.
-        Args:
-            show_id (int): The TMDB show ID.
-        Returns:
-            str: The show overview."""
-        
-        response = self._get(f'/tv/{show_id}?api_key={self.apikey}')
-        return response['overview']
-    
-    def get_show(self, show_id: int, season_number:int) ->str:
-        """Gets the show data for a given show ID.
-        Args:
-            show_id (int): The TMDB show ID.
-        Returns:
-            str: The show data."""
-        
-        response = self._get(f'/tv/{show_id}/season/{season_number}?api_key={self.apikey}')
-        return response
-    
-    
-    def get_episode_info(self, show_id: int, season_number: int, episode_number: int) -> str:
-        """Gets the episode info for a given show ID, season and episode number.
+    def get_episode_info(self, show_id: int, season_number: int, episode_number: int, language: str = "en-US") -> Optional[Dict]:
+        """Gets detailed episode info.
         Args:
             show_id (int): The TMDB show ID.
             season_number (int): The season number.
             episode_number (int): The episode number.
+            language (str): The language to use.
         Returns:
-            str: The episode info."""
+            dict: The episode info."""
         
-        response = self._get(f'/tv/{show_id}/season/{season_number}/episode/{episode_number}?api_key={self.apikey}')
-        return response
+        return self._get(f'/tv/{show_id}/season/{season_number}/episode/{episode_number}?api_key={self.apikey}&language={language}')
     
-    def multi_search(self, query: str) -> dict:
-        """Searches for movies, shows and people.
+    def get_season_info(self, show_id: int, season_number: int, language: str = "en-US") -> Optional[Dict]:
+        """Gets detailed season info.
         Args:
-            query (str): The search query.
+            show_id (int): The TMDB show ID.
+            season_number (int): The season number.
+            language (str): The language to use.
+        Returns:
+            dict: The season info."""
+        
+        return self._get(f'/tv/{show_id}/season/{season_number}?api_key={self.apikey}&language={language}')
+
+    def multi_search(self, query: str) -> Optional[Dict]:
+        """Searches for movies and shows.
+        Args:
+            query (str): The query to search for.
         Returns:
             dict: The search results."""
+        
         response = self._get(f'/search/multi?query={query}&include_adult=false&language=en-US&page=1&api_key={self.apikey}')
-        return response['results']
-    
-    
+        return response.get('results') if response else None
