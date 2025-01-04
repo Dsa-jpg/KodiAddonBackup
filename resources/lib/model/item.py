@@ -1,13 +1,6 @@
 import xbmcgui
 import xbmcplugin
 
-class Item:
-
-    
-
-    pass
-
-
 class DirectoryItem():
     """ Represents an item in the directory list. """
     def __init__(self, label: str, url:str, isFolder: bool, info: dict, art: dict = None):

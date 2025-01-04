@@ -139,10 +139,13 @@ class WebShareClient():
             #TODO: Add a filter to exclude clips and trailers and films with size less than 1GB
             """ 
             name = film.find('name').text
-            regex_pattern = rf"^(?!.*(?:clip|trailer)).*{re.escape(query)}.*$"
-            filter = re.search(regex_pattern, name, re.IGNORECASE)
-            if not filter:
-                continue
+            regex_pattern = r"^(?!.*\b(clip|trailer)\b).*"
+            for word in words:
+                # Přidání každého slova do regex patternu, zachováme i mezery
+                regex_pattern += re.escape(word) + r"[\s\S]*"
+
+            # Přidání zbylého vzoru
+            regex_pattern += r".*$"
 
             size = f"{int(film.find('size').text) / (1024**3):.2f}"
             if float(size) < 1:
