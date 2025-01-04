@@ -170,7 +170,8 @@ def top_films(traK, login, webC, my_addon, addon_handle, tmdb, sqlDB):
         original_language = tmdb.get_language(tmdb_id, "movie")
         formatted_title = f"[COLOR blue]{original_language.upper()}[/COLOR] [COLOR grey]·[/COLOR] {movie['title']} [COLOR grey]({movie['year']})[/COLOR]"
         fanart_url = tmdb.get_fanart_path(tmdb_id)
-        test = webC.urls_list(info['title'],my_addon.getSetting('token'),str(uuid.uuid4()),5)
+        query = f'{info["title"]} {movie["year"]}'
+        test = webC.urls_list(query,my_addon.getSetting('token'),str(uuid.uuid4()),5)
         play_url = f'plugin://plugin.video.helloworld/?{urllib.parse.urlencode({"action": "select_stream", "title": movie["title"],"urls": ",".join(test["urls"])})}'
         list_item = xbmcgui.ListItem(formatted_title)
         list_item.setInfo('video', {'title': movie['title'], 'year': movie['year'] , 'plot': overview, 'premiered': info['release_date']})
@@ -253,7 +254,7 @@ def show_episodes(traK, login, show_id, season_number, addon_handle, my_addon, w
         fanart_url = TMDB.TRUESIZEURL.format(response['still_path'])
         duration = response['runtime'] * 60
 
-        query = f'{title["title"]} - Season {season_number} - Episode {episode["number"]}'
+        query = f'{title["title"]} s0{season_number}e0{episode["number"]}'
         xbmcgui.Dialog().notification(query, xbmcgui.NOTIFICATION_INFO)
         test = webC.urls_list(query,my_addon.getSetting('token'),str(uuid.uuid4()),5)
 

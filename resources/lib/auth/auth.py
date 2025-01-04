@@ -117,57 +117,63 @@ class WebShareClient():
         
 
     def urls_list(self,
-               query: str,
-               token: str,
-               user_uuid: str,
-               limit: int) -> dict:
+                  query: str,
+                  token: str,
+                  user_uuid: str,
+                  limit: int) -> dict:
 
         response = self._post("/search/", {
             "what": query,
-            "sort": "rating",
+            "sort": "largest",
             "limit": limit,
             "category": "video",
         })
 
-        urls = {"urls":[]}
+        urls = {"urls": []}
         root = ET.fromstring(response)
+        
+        # Rozdělení dotazu na jednotlivá slova
+        words = query.split()
+
         for film in root:
             if film.find('ident') is None:
                 continue
             ident = film.find('ident').text
 
-            #TODO: Add a filter to exclude clips and trailers and films with size less than 1GB
-            """ 
+            # Získání názvu filmu
             name = film.find('name').text
+
+            # Dynamické vytvoření regex patternu pro název
             regex_pattern = r"^(?!.*\b(clip|trailer)\b).*"
             for word in words:
-                # Přidání každého slova do regex patternu, zachováme i mezery
                 regex_pattern += re.escape(word) + r"[\s\S]*"
-
-            # Přidání zbylého vzoru
             regex_pattern += r".*$"
 
-            size = f"{int(film.find('size').text) / (1024**3):.2f}"
-            if float(size) < 1:
+            # Aplikace regex filtru na název filmu
+            filter = re.search(regex_pattern, name, re.IGNORECASE)
+            if not filter:
                 continue
-            """
-            
-            # Get file download link
+
+           
+
+            # Získání odkazu pro stažení
             _file_link_response = self._post("/file_link/", {
-                    "ident": ident,
-                    "password": "",
-                    "download_type": "video_stream",
-                    "device_uuid": user_uuid,
-                    "force_https": 0,
-                    "wst": token,
-                })
+                "ident": ident,
+                "password": "",
+                "download_type": "video_stream",
+                "device_uuid": user_uuid,
+                "force_https": 0,
+                "wst": token,
+            })
             _reponse = ET.fromstring(_file_link_response)
-            # some of the films are password restricted so you need to filter these out by this condition 
+            
+            # Filtrace filmů s omezeným přístupem
             if _reponse.find('link') is None:
                 continue
+            
+            # Přidání odkazu do seznamu
             urls["urls"].append(_reponse.find('link').text)
 
-        
         return urls
         
 
