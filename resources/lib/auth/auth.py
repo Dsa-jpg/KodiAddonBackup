@@ -115,7 +115,7 @@ class WebShareClient():
             logged_message("Failed to parse search results from response", ERROR_LVL.LOGWARNING)
             raise ValueError("Invalid API response for search")
         
-
+    #TODO: There is problem with regex pattern due to the fact that the name of the file is not always in english and could be in czech which resolves in unwanted results
     def urls_list(self,
                   query: str,
                   token: str,
